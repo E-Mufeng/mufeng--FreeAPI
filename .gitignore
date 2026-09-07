@@ -33,6 +33,11 @@ visual-consistency-review.md
 e2e-api-report.md
 e2e-report.md
 
+# Internal technical-review docs (project-internal, not for open-source readers)
+Phase2b-限流技术评审.md
+Phase2c-v0.9.0-overview.md
+Phase2c-架构重构技术评审.md
+
 # WorkBuddy local state
 .workbuddy/memory/
 .workbuddy/skills/
