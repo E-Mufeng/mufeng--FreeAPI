@@ -1,0 +1,57 @@
+{
+  "port": 8787,
+  "host": "127.0.0.1",
+  "mode": "balanced",
+  "token": "",
+  "accessPassword": "",
+  "classifier": "",
+  "appTokens": [],
+  "passthroughAuth": false,
+  "modelMapping": {
+    "gpt-3.5-turbo": ["sf/Qwen2.5-7B-Instruct", "zhipu/glm-4-flash"],
+    "gpt-4": ["sf/deepseek-ai/DeepSeek-V3", "alibaba/qwen-plus"]
+  },
+  "quotaAlert": {
+    "warnPct": 20,
+    "critPct": 5,
+    "warnTokens": null,
+    "critTokens": null,
+    "vendorWarnCny": 5,
+    "vendorCritCny": 1
+  },
+  "upstreams": [
+    {
+      "name": "硅基流动",
+      "vendor": "硅基流动 SiliconFlow",
+      "baseUrl": "https://api.siliconflow.cn/v1",
+      "apiKey": "sk-your-siliconflow-key",
+      "models": ["deepseek-ai/DeepSeek-V3", "deepseek-ai/DeepSeek-R1", "Qwen/Qwen2.5-72B-Instruct"],
+      "weight": 3,
+      "priority": 1,
+      "cost": 0,
+      "enabled": true
+    },
+    {
+      "name": "阿里云百炼",
+      "vendor": "阿里云百炼",
+      "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "apiKey": "sk-your-bailian-key",
+      "models": ["qwen-plus", "qwen-max"],
+      "weight": 2,
+      "priority": 2,
+      "cost": 0,
+      "enabled": true
+    },
+    {
+      "name": "智谱AI",
+      "vendor": "智谱 AI",
+      "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
+      "apiKey": "sk-your-zhipu-key",
+      "models": ["glm-4-plus"],
+      "weight": 1,
+      "priority": 3,
+      "cost": 0,
+      "enabled": false
+    }
+  ]
+}

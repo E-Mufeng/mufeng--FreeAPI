@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1e3d">
+<meta name="description" content="Free API 工作台 - 集中管理 AI 平台免费模型与 API，一键沉淀为可调用资产">
+<title>Free API 工作台</title>
+<!--
+  Free API 工作台 · Vite 构建 · 零运行时依赖
+  以 index.html 为入口，经 Vite 打包 src/ 下 ES 模块；不引用任何 CDN、外部字体或图表库；图标与图表均为内联 SVG。
+  产物断网可用，由本地代理（proxy/proxy.js）托管 dist/。数据存于本机 localStorage（键前缀 wb_freeapi_），不上传服务器。
+-->
+
+<style>
+/* file:// 协议直开兜底：ESM 在 file 协议下被浏览器拦截，必须启动代理访问 */
+.file-protocol-warning { display:none; }
+html.file-protocol .file-protocol-warning { display:flex; }
+html.file-protocol body > *:not(.file-protocol-warning) { display:none !important; }
+</style>
+<script>
+(function () {
+  if (location.protocol !== 'file:') return;
+  // 测试环境放行：jsdom 加载 dist/index.html 时 url 为 file://，
+  // 但测试已准备好 fetch mock，需要正常进入 SPA。
+  try { if (window.__FILE_PROTOCOL_OK__) return; } catch (e) {}
+  var href = location.href || '';
+  var port = '8787';
+  var url = 'http://127.0.0.1:' + port + '/';
+  document.documentElement.classList.add('file-protocol');
+  document.addEventListener('DOMContentLoaded', function () {
+    // 阻止 ESM 模块继续加载/执行，避免 file:// 下产生额外报错
+    try {
+      var scripts = document.querySelectorAll('script[type="module"]');
+      for (var i = 0; i < scripts.length; i++) scripts[i].remove();
+    } catch (e) {}
+    document.body.innerHTML =
+      '<div class="file-protocol-warning">' +
+        '<div class="fp-card">' +
+          '<div class="fp-icon">' +
+            '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#5b6ef5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
+          '</div>' +
+          '<h1>请通过本地代理打开</h1>' +
+          '<p>Free API 工作台已升级为 Vite 模块化应用，<strong>不能直接双击打开 HTML 文件</strong>。</p>' +
+          '<p>ESM 模块在 <code>file://</code> 协议下会被浏览器拦截，导致界面毁坏、按钮无反应。</p>' +
+          '<ol>' +
+            '<li>在本目录打开终端 / PowerShell</li>' +
+            '<li>运行：<code>node proxy/proxy.js</code></li>' +
+            '<li>浏览器访问：<a href="' + url + '" target="_blank">' + url + '</a></li>' +
+          '</ol>' +
+          '<p class="fp-tip">也可直接双击 <code>start.bat</code>（Windows）或 <code>./start.sh</code>（macOS/Linux）启动代理。</p>' +
+          '<p class="fp-tip">启动后若未自动跳转，请手动访问上方链接。</p>' +
+        '</div>' +
+      '</div>';
+  });
+})();
+</script>
+<script>
+/* 主题早同步：在 Vite 模块加载前读取用户主题，避免 html 根元素出现浅色“白边”闪烁 */
+(function () {
+  function setHtmlTheme() {
+    try {
+      var raw = localStorage.getItem('wb_freeapi_db_v2');
+      var theme = 'light';
+      if (raw) {
+        var data = JSON.parse(raw);
+        if (data && data.settings && data.settings.theme) theme = data.settings.theme;
+      }
+      if (theme === 'system') {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
+        else theme = 'light';
+      }
+      document.documentElement.classList.add('theme-' + theme);
+    } catch (e) {}
+  }
+  setHtmlTheme();
+})();
+</script>
+<style>
+.file-protocol-warning {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at 50% 0%, #1a2b5e 0%, #0f1e3d 60%, #0a142b 100%);
+  color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+  padding: 24px;
+  z-index: 2147483647;
+}
+.fp-card {
+  max-width: 520px; width: 100%;
+  background: rgba(22, 36, 74, 0.92);
+  border: 1px solid rgba(139, 155, 222, 0.22);
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+  padding: 36px 32px;
+  backdrop-filter: blur(10px);
+}
+.fp-icon { text-align: center; margin-bottom: 16px; }
+.fp-card h1 { margin: 0 0 14px; font-size: 22px; text-align: center; letter-spacing: 0.5px; }
+.fp-card p { margin: 0 0 12px; line-height: 1.7; color: #dbe2f1; font-size: 15px; }
+.fp-card ol { margin: 14px 0; padding-left: 22px; line-height: 2; color: #c9d0ff; }
+.fp-card code {
+  background: rgba(91, 110, 245, 0.14); color: #a8b1fb; padding: 2px 7px; border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px;
+}
+.fp-card a { color: #5b6ef5; text-decoration: underline; }
+.fp-tip { font-size: 13px; color: #93a5d1; margin-top: 10px; }
+@media (max-width: 560px) { .fp-card { padding: 24px 20px; } .fp-card h1 { font-size: 18px; } }
+</style>
+
+</head>
+<body>
+<a class="skip-link" href="#content">跳到主内容</a>
+<!-- L1+ 流动光斑（画布层） -->
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<!-- ============================================================
+     视图一：欢迎页（入口）
+     ============================================================ -->
+<section class="welcome-view" id="viewWelcome">
+  <div class="wv-stars" aria-hidden="true"></div>
+  <div class="wv-wrap">
+    <div class="wv-hero">
+      <span class="wv-badge"><i></i>本地体验版 · 数据只存本机</span>
+      <h1 class="wv-title">Free <em>API</em> 工作台</h1>
+      <p class="wv-sub">
+        把散落在各处的 <strong>免费大模型情报</strong>、<strong>API 凭证</strong> 与 <strong>调用记录</strong>
+        收进一个页面，按需沉淀成可直接调用的接口资产。
+      </p>
+      <div class="wv-actions">
+        <button class="btn btn-accent" id="enterBtn" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h13"/><path d="M12 5l7 7-7 7"/>
+          </svg>
+          开始体验
+        </button>
+        <button class="btn btn-ghost" id="wvPlanBtn" type="button">查看功能规划</button>
+      </div>
+    </div>
+
+    <div class="wv-stage" aria-hidden="true">
+      <div class="wv-stage-inner">
+        <div class="wv-mock a">
+          <div class="wv-mock-hd"><i></i><i></i><i></i></div>
+          <div class="wv-mock-body is-center">
+            <div class="wv-mock-line"><span class="k">代理状态</span><span class="v" id="wvProxyState">检测中…</span><span class="wv-mock-chip" id="wvProxyChip">···</span></div>
+            <div class="wv-mock-line"><span class="k">已接入模型</span><span class="v" id="wvModelCount">示例 · 免费/限额</span></div>
+            <div class="wv-mock-line"><span class="k">OpenAI 兼容</span><span class="v">标准接口示例</span></div>
+            <div class="wv-mock-sig">keep your spirit free</div>
+            <div class="wv-mock-hint" id="wvProxyHint" hidden>本地代理离线，请启动本地代理服务</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wv-cards stagger" id="wvPlan">
+      <article class="wv-card">
+        <span class="num">01</span>
+        <span class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3.2M21 12v2"/>
+          </svg>
+        </span>
+        <h3>API 与凭证集中管理</h3>
+        <p>按平台归档 token、Base URL 与到期时间，保存登录态后可一键跳转。</p>
+        <ul>
+          <li>密钥掩码展示，避免屏幕外泄</li>
+          <li>到期提醒，防止静默失效</li>
+          <li>本地 JSON 备份与恢复</li>
+        </ul>
+        <span class="wv-tag">已上线</span>
+      </article>
+
+      <article class="wv-card">
+        <span class="num">02</span>
+        <span class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/>
+            <path d="M12 12l6.5-4.5"/>
+          </svg>
+        </span>
+        <h3>免费模型情报整理</h3>
+        <p>跟踪厂商公告与站点福利，整理当前可用的免费大模型清单。</p>
+        <ul>
+          <li>模型名称 / 网站 / 免费额度</li>
+          <li>适用方向：语言、图像、多模态</li>
+          <li>标注核实时间，判断时效性</li>
+        </ul>
+        <span class="wv-tag">已上线</span>
+      </article>
+
+      <article class="wv-card">
+        <span class="num">03</span>
+        <span class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 7h5l3 3h8"/><path d="M4 17h5l3-3"/>
+            <path d="M17 4.5l3 2.5-3 2.5"/><path d="M17 14.5l3 2.5-3 2.5"/>
+          </svg>
+        </span>
+        <h3>中转站式统一调度</h3>
+        <p>以中转模式把多家上游聚合成统一入口，按规则与权重转发调用。</p>
+        <ul>
+          <li>规则配置与权重分配</li>
+          <li>调用成功率与延迟统计</li>
+          <li>失败自动切换上游</li>
+        </ul>
+        <span class="wv-tag">已上线</span>
+      </article>
+    </div>
+
+    <p class="wv-foot">Free API 工作台 · 本地体验版 · 单文件零依赖</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     视图二：主应用
+     ============================================================ -->
+<div class="app-view" id="viewApp" hidden>
+
+  <!-- ---------- 顶栏 ---------- -->
+  <header class="topbar">
+    <div class="tb-brand">
+      <span class="tb-logo" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 15l6-6"/><path d="M11 6l1-1a4 4 0 015.7 5.7l-1 1"/>
+          <path d="M13 18l-1 1a4 4 0 01-5.7-5.7l1-1"/>
+        </svg>
+      </span>
+      <span class="tb-name">Free API</span>
+    </div>
+    <p class="tb-desc" id="tbDesc">集中管理 AI 平台免费模型与 API 凭证，沉淀为可统一调用的资产</p>
+
+    <div class="tb-right">
+      <!-- 桌面端：状态标识 -->
+      <span class="chip chip-local d-only"><i></i>本地体验版</span>
+      <!-- 移动端：示例 / 设置 -->
+      <button class="btn btn-ghost btn-icon m-only" id="mExampleBtn" type="button" aria-label="快捷示例" title="快捷示例">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 5.5A1.5 1.5 0 015.5 4H10a2 2 0 012 2v14a2 2 0 00-2-2H5.5A1.5 1.5 0 014 16.5z"/>
+          <path d="M20 5.5A1.5 1.5 0 0018.5 4H14a2 2 0 00-2 2v14a2 2 0 012-2h4.5a1.5 1.5 0 001.5-1.5z"/>
+        </svg>
+      </button>
+      <button class="btn btn-ghost btn-icon m-only" id="mSettingBtn" type="button" aria-label="页面设置" title="页面设置">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-2.9 1.2 2 2 0 11-4 0 1.7 1.7 0 00-2.9-1.2l-.1.1a2 2 0 11-2.8-2.8l.1-.1A1.7 1.7 0 003 15a2 2 0 010-4 1.7 1.7 0 001.2-2.9l-.1-.1a2 2 0 112.8-2.8l.1.1A1.7 1.7 0 0010 4.6a2 2 0 014 0A1.7 1.7 0 0016.9 6l.1-.1a2 2 0 112.8 2.8l-.1.1A1.7 1.7 0 0021 11a2 2 0 010 4z"/>
+        </svg>
+      </button>
+      <button class="btn btn-outline btn-sm" id="tbBackBtn" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+        </svg>
+        <span class="d-only">返回首页</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- ---------- 左侧任务栏 ---------- -->
+    <aside class="sidebar">
+      <p class="side-label">工作模块</p>
+      <nav class="nav" id="nav" aria-label="模块导航">
+        <button class="nav-item" type="button" data-mod="overview">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+          </svg>
+          <span>概览</span>
+        </button>
+        <button class="nav-item" type="button" data-mod="free">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3l2.2 5.3 5.8.5-4.4 3.8 1.3 5.6L12 15.3 7.1 18.2l1.3-5.6L4 8.8l5.8-.5z"/>
+          </svg>
+          <span>Free 模型</span>
+          <em class="nav-badge" id="badgeFree">0</em>
+        </button>
+        <button class="nav-item" type="button" data-mod="api">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3.2M21 12v2"/>
+          </svg>
+          <span>API 管理</span>
+          <em class="nav-badge" id="badgeApi">0</em>
+        </button>
+        <button class="nav-item" type="button" data-mod="relay">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 7h5l3 3h8"/><path d="M4 17h5l3-3"/>
+            <path d="M17 4.5l3 2.5-3 2.5"/><path d="M17 14.5l3 2.5-3 2.5"/>
+          </svg>
+          <span>中转站模型管理</span>
+          <em class="nav-badge" id="badgeRelay">0</em>
+        </button>
+        <button class="nav-item" type="button" data-mod="routes">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 3v11"/><circle cx="6" cy="17" r="2.1"/><circle cx="18" cy="6" r="2.1"/>
+            <path d="M6 17c0-7 6-7 12-11"/><path d="M18 8v10"/>
+          </svg>
+          <span>上游路由</span>
+          <em class="nav-badge" id="badgeRoutes">0</em>
+        </button>
+        <button class="nav-item" type="button" data-mod="logs">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 6h16M4 12h16M4 18h10"/>
+          </svg>
+          <span>请求日志</span>
+        </button>
+      </nav>
+
+      <div class="side-foot">
+        <p class="side-label" style="padding-top:6px">其他</p>
+        <button class="nav-item" type="button" id="exampleBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 5.5A1.5 1.5 0 015.5 4H10a2 2 0 012 2v14a2 2 0 00-2-2H5.5A1.5 1.5 0 014 16.5z"/>
+            <path d="M20 5.5A1.5 1.5 0 0018.5 4H14a2 2 0 00-2 2v14a2 2 0 012-2h4.5a1.5 1.5 0 001.5-1.5z"/>
+          </svg>
+          <span>快捷示例</span>
+        </button>
+        <button class="nav-item" type="button" id="settingBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-2.9 1.2 2 2 0 11-4 0 1.7 1.7 0 00-2.9-1.2l-.1.1a2 2 0 11-2.8-2.8l.1-.1A1.7 1.7 0 003 15a2 2 0 010-4 1.7 1.7 0 001.2-2.9l-.1-.1a2 2 0 112.8-2.8l.1.1A1.7 1.7 0 0010 4.6a2 2 0 014 0A1.7 1.7 0 0016.9 6l.1-.1a2 2 0 112.8 2.8l-.1.1A1.7 1.7 0 0021 11a2 2 0 010 4z"/>
+          </svg>
+          <span>页面设置</span>
+        </button>
+
+        <div class="side-tip">
+          <b>数据存哪了</b>
+          浏览器的本地存储里，只在这台电脑上。清理浏览器数据会一并清掉，重要配置记得导出备份。
+        </div>
+        <div class="side-health" id="sideHealth" title="本地代理健康状态">
+          <span class="sh-dot" id="shDot"></span>
+          <span class="sh-text" id="shText">代理检测中…</span>
+          <span class="sh-ver" id="shVer"></span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ---------- 右侧内容区 ---------- -->
+    <main class="content" id="content" tabindex="-1"></main>
+
+  </div>
+</div>
+
+<!-- ============================================================
+     弹窗
+     ============================================================ -->
+<!-- ---------- 悬浮工具条 ---------- -->
+<div class="fab-stack" id="fabStack" hidden>
+  <button class="fab" id="fabTop" type="button" data-tip="回到顶部" data-tip-pos="right" aria-label="回到顶部">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 19V5"/><path d="M5 12l7-7 7 7"/>
+    </svg>
+  </button>
+</div>
+
+<div class="modal-root" id="modalRoot" hidden>
+  <div class="mask" id="modalMask"></div>
+  <div class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <div class="dlg-head">
+      <div>
+        <h3 id="dlgTitle">标题</h3>
+        <p class="dlg-sub" id="dlgSub"></p>
+      </div>
+      <button class="btn btn-ghost btn-icon dlg-close" id="dlgClose" type="button" aria-label="关闭弹窗" data-tip="关闭" data-tip-pos="left">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="dlg-body" id="dlgBody"></div>
+    <div class="dlg-foot" id="dlgFoot">
+      <span class="df-note" id="dlgNote"></span>
+      <span class="df-right" id="dlgBtns"></span>
+    </div>
+    <div class="dlg-busy" id="dlgBusy" hidden>
+      <span class="spinner" aria-hidden="true"></span>
+      <span>提交中…</span>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- 代理详情抽屉（右侧滑出） ---------- -->
+<div class="drawer-root" id="drawerRoot" hidden>
+  <div class="mask" id="drawerMask" aria-hidden="true"></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true">
+    <div class="dlg-head">
+      <div>
+        <h3 id="drawerTitle">代理详情</h3>
+        <p class="dlg-sub" id="drawerSub"></p>
+      </div>
+      <button class="btn btn-ghost btn-icon" id="drawerClose" type="button" aria-label="关闭抽屉" data-tip="关闭" data-tip-pos="left">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="dlg-body" id="drawerBody"></div>
+  </aside>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module" src="/src/main.js"></script>
+
+</body>
+</html>

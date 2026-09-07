@@ -1,0 +1,24 @@
+[Unit]
+Description=Free API 本地代理工作台
+Documentation=https://github.com/E-Mufeng/Free-API
+After=network.target
+
+[Service]
+# 改为你的实际部署目录
+WorkingDirectory=/opt/free-api
+ExecStart=/usr/bin/node /opt/free-api/proxy/proxy.js
+Restart=on-failure
+RestartSec=5
+# 非 root 运行；创建专用用户：useradd -m -s /usr/sbin/nologin freeapi
+User=freeapi
+Group=freeapi
+Environment=NODE_ENV=production
+# 多实例限流共享（可选）：在 config.json 设 rateLimit.sqlite=true 后，
+# 多个实例需挂载同一 free_api.db 所在目录（见 README 部署章节）
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/free-api/proxy
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,25 @@
+{
+  "name": "free-api-workbench",
+  "version": "0.12.2",
+  "private": true,
+  "description": "Free API 工作台 - 本地 AI 免费模型/API 聚合管理与中转调用",
+  "license": "MIT",
+  "author": "E-Mufeng",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/E-Mufeng/Free-API.git"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:legacy": "node build.js",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2",
+    "vite": "^5.4.21"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3"
+  }
+}

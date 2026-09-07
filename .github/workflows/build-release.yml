@@ -1,0 +1,93 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'            # 打 vX.Y.Z tag 即触发自动构建与发布
+  workflow_dispatch:     # 允许手动在 Actions 页面触发
+
+permissions:
+  contents: write       # 建 Release 需要写权限
+
+jobs:
+  build:
+    # 完整运行包含 better-sqlite3 原生模块，需在「用户实际运行的 OS + Node 大版本」上预编译。
+    # 用户为 Windows + Node 22，故 CI 用 windows-latest + Node 22 对齐，确保 Release 包内预编译二进制可直接加载。
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # better-sqlite3 是原生 C 模块：优先用 prebuild-install 下载预编译包；
+      # 若 runner 网络取不到预编译包，则回退源码编译。windows-latest 默认只带 VS 2025，
+      # node-gyp 11.x 无法识别，会编译失败。此处显式装好 VS 2022 Build Tools（含 Windows SDK），
+      # 让编译兜底必定成功，保证 Release 包内含可用原生二进制。
+      - name: Install VS 2022 Build Tools (better-sqlite3 原生编译兜底)
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_buildtools.exe
+          Start-Process -FilePath .\vs_buildtools.exe -ArgumentList '--quiet','--wait','--add','Microsoft.VisualStudio.Workload.VCTools','--add','Microsoft.VisualStudio.Component.VC.Tools.x86.x64','--includeRecommended' -Wait
+          Remove-Item vs_buildtools.exe -Force -ErrorAction SilentlyContinue
+          # 校验 VS 2022（v17）已被 node-gyp 依赖的 vswhere 探测到，含 C++ 工具集
+          $vswhere = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vs = & $vswhere -version '[17.0,18.0)' -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>$null
+          if (-not $vs) { Write-Error "VS 2022 Build Tools 安装后未探测到 VC.Tools 组件"; exit 1 }
+          Write-Host "VS2022 detected at: $vs"
+
+      - name: Install dependencies (build + runtime)
+        env:
+          npm_config_msvs_version: '2022'
+          GYP_MSVS_VERSION: '2022'
+          npm_config_fetch_timeout: '600000'
+          npm_config_fetch_retries: '5'
+        run: npm ci
+
+      - name: Build (esbuild → dist/)
+        run: npm run build
+
+      - name: Proxy 冒烟（确认 better-sqlite3 建表 + 日志接口可用）
+        shell: pwsh
+        run: |
+          # 用 node 生成临时配置（避开 PowerShell 哈希表语法歧义），仅验证启动/建表/日志接口
+          node -e "require('fs').writeFileSync('ci-smoke-config.json', JSON.stringify({port:8787,host:'127.0.0.1',mode:'balanced',token:'',appTokens:[],upstreams:[{name:'dummy',vendor:'dummy',baseUrl:'https://api.example.com/v1',apiKey:'x',models:['*'],weight:1,priority:1,cost:0,enabled:true}],relay:[],catalog:{user:[],enabled:{},vendorKey:{}},freeModels:[],proxyMasterToken:''}, null, 2));"
+          $proc = Start-Process -NoNewWindow -FilePath "node" -ArgumentList "proxy/proxy.js", "ci-smoke-config.json" -PassThru
+          $ok = $false
+          for ($i = 0; $i -lt 40; $i++) {
+            try { $r = Invoke-RestMethod -Uri "http://127.0.0.1:8787/health" -TimeoutSec 2; if ($r) { $ok = $true; break } } catch {}
+            Start-Sleep -Seconds 1
+          }
+          if (-not $ok) { Write-Error "proxy 未启动"; Get-Content proxy-smoke.log -ErrorAction SilentlyContinue; Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue; exit 1 }
+          $list = Invoke-RestMethod -Uri "http://127.0.0.1:8787/api/log/list"
+          if ($list.disabled) { Write-Error "日志模块 disabled（better-sqlite3 不可用）"; Stop-Process -Id $proc.Id -Force; exit 1 }
+          Write-Host "log db enabled, total=$($list.total)"
+          Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+          Remove-Item ci-smoke-config.json -Force -ErrorAction SilentlyContinue
+          # 清理冒烟产生的运行时数据，避免打进 Release 包
+          # 注意：stateStore（Phase 2c）也会在启动时建 free_api.db 并写入冒烟配置，必须一并清理
+          Remove-Item proxy/logs.db*, proxy/free_api.db*, proxy/logs -Recurse -Force -ErrorAction SilentlyContinue
+
+      - name: 仅保留运行时依赖（移除 esbuild 等 devDependencies）
+        run: npm prune --omit=dev
+
+      - name: Package 完整运行包（dist + proxy + node_modules + catalog + 启动脚本）
+        shell: pwsh
+        run: |
+          $zip = "free-api-workbench-${{ github.ref_name }}.zip"
+          Compress-Archive -Force -Path dist, proxy, node_modules, catalog, package.json, package-lock.json, start.bat, start.sh, README.md -DestinationPath $zip
+          Write-Host "打包完成：$zip"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Free API 工作台 ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          files: free-api-workbench-${{ github.ref_name }}.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,43 @@
+# Runtime / secrets
+proxy/config.json
+proxy/enabled-models.json
+proxy/logs/
+proxy/logs.db
+proxy/logs.db-*
+proxy/free_api.db
+proxy/free_api.db-*
+proxy/*.log
+*.log
+
+# Generated / cache / temp
+.verify/
+e2e-screens/
+catalog/models-catalog.json
+catalog/health-baseline.json
+catalog/*.bak*
+
+# Test scaffolding (regenerated on each test run, may hold test-only secrets)
+proxy/_t*.json
+proxy/config.auth-test.json
+nul
+overview-*.md
+
+# Session/working reports (may contain local context / personal decisions)
+实测与设计参考报告_2026-09-04.md
+诊断与修复报告_2026-09-03.md
+诊断与修复报告_2026-09-04.md
+项目状态评估-2026-09-06.md
+UI重构设计方案_2026-09-04.md
+review-report-2026-09-03.md
+visual-consistency-review.md
+e2e-api-report.md
+e2e-report.md
+
+# WorkBuddy local state
+.workbuddy/memory/
+.workbuddy/skills/
+.workbuddy/sessions/
+
+# Build output / deps (Phase 1: esbuild 产物不进 git，走 CI release)
+dist/
+node_modules/

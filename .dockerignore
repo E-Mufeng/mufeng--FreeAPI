@@ -1,0 +1,26 @@
+# 依赖与构建产物（镜像内重新安装/构建）
+node_modules
+dist
+
+# 密钥与运行时数据（绝不进镜像）
+proxy/config.json
+proxy/enabled-models.json
+proxy/logs
+proxy/logs.db
+proxy/logs.db-*
+proxy/free_api.db
+proxy/free_api.db-*
+*.db
+*.db-*
+*.log
+
+# 版本控制 / 工作流 / 本地状态
+.git
+.github
+.workbuddy
+.verify
+e2e-screens
+*.md
+
+# CI 冒烟残留
+ci-smoke-config.json
