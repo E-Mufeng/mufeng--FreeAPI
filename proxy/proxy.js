@@ -943,7 +943,7 @@ async function handleChat(req, res, body, tag) {
   }
   // 全部失败
   stats.fail++; stats.req++;
-  const status = lastIsRetryable ? 429 : 502;
+  const status = lastIsRetryable ? 429 : (lastErr && lastErr.clientError ? 400 : 502);
   const errOut = String((lastErr && lastErr.message) || lastErr || '所有上游均失败');
   logRequest({ model: originalModel, upstream: '-', status: status, latency: Date.now() - t0, auto: auto, error: errOut, usage: null, clientIp: clientIpOf(req) });
   if (!res.headersSent) {
@@ -955,7 +955,7 @@ async function handleChat(req, res, body, tag) {
       return sendJson(res, 429, { error: { message: errOut, code: 'rate_limit' } });
     }
     if (auto) throw new Error(errOut);
-    return sendJson(res, 502, { error: { message: errOut } });
+    return sendJson(res, status, { error: { message: errOut } });
   }
   // 流式已开始发头：无法回退，只能补错误帧
   try { res.end('\n[data: {"error":"all upstreams failed"}]\n\n'); } catch (e) {}
@@ -965,7 +965,9 @@ async function handleChat(req, res, body, tag) {
 async function tryModelChat(req, res, body, tag, t0, ck, ip, mode, auto, model, chainIndex) {
   const routes = resolveRoutes(model, mode);
   if (!routes.length) {
-    return { ok: false, isRetryable: false, error: new Error('没有可服务模型 ' + model + ' 的上游') };
+    const e = new Error('没有可服务模型 ' + model + ' 的上游');
+    e.clientError = true;
+    return { ok: false, isRetryable: false, error: e };
   }
   // —— 路线2b：限流前置检查（本机限流超限视为可 failover）——
   const rlDecision = rl.allow({ upstream: routes[0].name, clientIp: ip });

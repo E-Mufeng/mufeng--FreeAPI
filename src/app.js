@@ -203,7 +203,7 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
         }
         if (Array.isArray(j.freeModels) && j.freeModels.length) DB.models = j.freeModels;
         if (j.tokens && typeof j.tokens === 'object') {
-          if (j.tokens.relayToken != null) DB.relayToken = j.tokens.relayToken;
+          if (typeof j.tokens.relayToken === 'string' && j.tokens.relayToken) DB.relayToken = j.tokens.relayToken;
           if (j.tokens.proxyMasterToken != null) DB.proxyMasterToken = j.tokens.proxyMasterToken;
         }
         save();
@@ -1695,14 +1695,14 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
     var text = ta ? ta.value.trim() : '';
     if (!text) { toast('请输入要发送的内容', 'err'); return; }
     if (!DB.settings.intent) { toast('请先在上方开启意图识别', 'err'); return; }
-    if (!DB.relayToken) { toast('请先生成中转站 Key（代理已启用鉴权）', 'err'); return; }
+    if (!DB.proxyMasterToken && !DB.relayToken) { toast('请先在设置里配置主控 Key（代理已启用鉴权）', 'err'); return; }
     var ids = catalogEnabledIds();
     if (!ids.length) { toast('没有已启用的模型，请先到 Free 模型模块启用', 'err'); return; }
     var res = document.getElementById('intentResult');
     if (res) res.innerHTML = '<span class="chip chip-warn"><i></i>请求中…</span>';
     var body = { model: 'auto', messages: [{ role: 'user', content: text }], stream: false, models: ids };
     var headers = mhdr();
-    if (DB.relayToken) headers['x-proxy-token'] = DB.relayToken;
+    if (DB.proxyMasterToken) headers['x-proxy-token'] = DB.proxyMasterToken; else if (DB.relayToken) headers['x-proxy-token'] = DB.relayToken;
     fetch(PROXY_V1 + '/auto/chat/completions', { method: 'POST', headers: headers, body: JSON.stringify(body) })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (j) {
@@ -1856,14 +1856,14 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
     var text = ta ? ta.value.trim() : '';
     if (!text) { toast('请输入要测试的需求', 'err'); return; }
     if (!DB.settings.intent) { toast('请先开启意图识别', 'err'); return; }
-    if (!DB.relayToken) { toast('请先生成中转站 Key（代理已启用鉴权）', 'err'); return; }
+    if (!DB.proxyMasterToken && !DB.relayToken) { toast('请先在设置里配置主控 Key（代理已启用鉴权）', 'err'); return; }
     var ids = catalogEnabledIds();
     if (!ids.length) { toast('没有已启用模型', 'err'); return; }
     var res = document.getElementById('classifierResult');
     if (res) res.innerHTML = '<span class="chip chip-warn"><i></i>分析中…</span>';
     var body = { model: 'auto', messages: [{ role: 'user', content: text }], stream: false, models: ids };
     var headers = mhdr();
-    if (DB.relayToken) headers['x-proxy-token'] = DB.relayToken;
+    if (DB.proxyMasterToken) headers['x-proxy-token'] = DB.proxyMasterToken; else if (DB.relayToken) headers['x-proxy-token'] = DB.relayToken;
     fetch(PROXY_V1 + '/auto/chat/completions', { method: 'POST', headers: headers, body: JSON.stringify(body) })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (j) {
@@ -3141,7 +3141,8 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
   }
 
   function ensureRelayToken() {
-    if (DB.relayToken) return Promise.resolve(DB.relayToken);
+    if (typeof DB.proxyMasterToken === 'string' && DB.proxyMasterToken) return Promise.resolve(DB.proxyMasterToken);
+    if (typeof DB.relayToken === 'string' && DB.relayToken) return Promise.resolve(DB.relayToken);
     // 生成「应用 Key」而非重置主控 Key；/token/generate 会覆盖 config.token，改用 /tokens create
     return fetch(PROXY_V1 + '/tokens', {
       method: 'POST',
