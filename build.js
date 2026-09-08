@@ -67,7 +67,7 @@ function copyDir(src, dest) {
     format: 'iife',
     outdir: assets,
     entryNames: 'app.[hash]',
-    loader: { '.js': 'js' },
+    loader: { '.js': 'js', '.png': 'file' },
     logLevel: 'info'
   });
 

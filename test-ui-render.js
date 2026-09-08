@@ -296,7 +296,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   }
 
   // 6. 主题系统
-  ok('主题：body 已应用 theme-light', doc.body.classList.contains('theme-light'));
+  ok('主题：body 已应用 theme-cyberpunk', doc.body.classList.contains('theme-cyberpunk'));
 
   // 7. 未捕获异常
   ok('无未捕获 JS 异常', errors.length === 0, errors.slice(0, 3).join(' | '));

@@ -125,7 +125,7 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
       relayToken: '',
       proxyMasterToken: '',
       gen: { stage: STAGES[0], scene: '', goal: GOALS[0], custom: '', collapsed: {} },
-      settings: { demoState: 'normal', density: 'comfortable', showMasked: true, confirmDelete: true, intent: false, vaultOn: false, theme: 'light', themeBg: 'default', brightness: 100, fontScale: 100, fontFamily: 'system', startup: 'overview', proxyAutostart: false }
+      settings: { demoState: 'normal', density: 'comfortable', showMasked: true, confirmDelete: true, intent: false, vaultOn: false, theme: 'cyberpunk', themeBg: 'cyberpunk', brightness: 100, fontScale: 100, fontFamily: 'system', startup: 'overview', proxyAutostart: false }
     };
   }
 
