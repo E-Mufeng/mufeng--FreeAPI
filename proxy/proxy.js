@@ -24,6 +24,7 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const crypto = require('crypto');
 const { URL } = require('url');
 const { spawn } = require('child_process');
@@ -1345,6 +1346,41 @@ function handleDataApi(req, res, u) {
   return sendJson(res, 405, { error: { message: '仅支持 GET / PUT' } });
 }
 
+// ---------- 开机自启管理（Windows 启动文件夹快捷方式） ----------
+const AUTOSTART_LNK = path.join(process.env.APPDATA || os.homedir(), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup', 'free-api-proxy.lnk');
+function autostartStatus() { try { return fs.existsSync(AUTOSTART_LNK); } catch (e) { return false; } }
+function runAutostartScript(scriptName, callback) {
+  var bat = path.join(__dirname, scriptName);
+  if (!fs.existsSync(bat)) {
+    return callback(new Error('找不到 ' + scriptName + '，请确认仓库文件完整'));
+  }
+  var out = '', err = '';
+  var child = spawn('cmd', ['/c', bat], { cwd: __dirname });
+  child.stdout.on('data', function (d) { out += d.toString(); });
+  child.stderr.on('data', function (d) { err += d.toString(); });
+  child.on('error', function (e) { callback(e); });
+  child.on('close', function (code) { callback(null, { code: code, out: out, err: err }); });
+}
+function handleAutostartStatus(res) {
+  sendJson(res, 200, { ok: true, enabled: autostartStatus(), path: AUTOSTART_LNK });
+}
+function handleAutostartAction(res, action) {
+  var script = action === 'install' ? 'install-autostart.bat' : 'uninstall-autostart.bat';
+  runAutostartScript(script, function (e, r) {
+    if (e) {
+      return sendJson(res, 503, { error: { message: '无法执行自启脚本（受限环境/沙箱拦截）：' + e.message + '。请在真机以管理员运行：' + path.join(__dirname, script) } });
+    }
+    var ok = r && r.code === 0;
+    if (ok) {
+      return sendJson(res, 200, { ok: true, enabled: action === 'install', message: action === 'install' ? '已注册开机自启' : '已取消开机自启' });
+    }
+    var detail = (r && (r.out || r.err)) || '';
+    // 批处理输出可能是系统 OEM 编码（如 GBK），Node 按 UTF-8 读会乱码；只保留可打印 ASCII 避免 JSON 里出现乱码
+    detail = detail.replace(/[^\x20-\x7E\n\r]/g, '?');
+    return sendJson(res, 500, { error: { message: '脚本返回错误（exit=' + (r ? r.code : '?') + '）。请在真机手动运行：' + path.join(__dirname, script) + (detail ? '\n' + detail.slice(-200) : '') } });
+  });
+}
+
 // ---------- 路线2b：限流状态查询（/api/rate/status，鉴权与 /api/log 同级） ----------
 function handleRateStatus(req, res, u) {
   // 鉴权：会话 / 主控 Key / 未设密码放行（含本机）
@@ -1386,6 +1422,13 @@ const server = http.createServer(function (req, res) {
   if (p === '/api/proxy/status' && req.method === 'GET') return sendStatus(res);
   // 可观测性：/api/health 与根 /health 等价（供 SPA 导航徽标轮询，无需鉴权）
   if (p === '/api/health' && req.method === 'GET') return sendHealth(res);
+  // 开机自启状态（本机免鉴权，外网需管理权限）
+  if (p === '/api/autostart/status' && req.method === 'GET') {
+    if (!mgmtAuth(req)) {
+      return sendJson(res, 401, { error: { message: '管理操作需登录或主控 Key' } });
+    }
+    return handleAutostartStatus(res);
+  }
   if (p === '/api/config' && req.method === 'GET') return handleConfigGet(res, u.searchParams.get('export') === '1');
   if (p === '/api/config/export' && req.method === 'GET') return handleConfigGet(res, true);
   if (p === '/v1/admin/token' && req.method === 'GET') return handleAdminToken(res, null);
@@ -1422,6 +1465,7 @@ const server = http.createServer(function (req, res) {
     var isRouteWrite = (p === '/v1/routes');
     var isAdminToken = (p === '/v1/admin/token');
     var isConfigWrite = (p === '/api/config');
+    var isAutostartWrite = (p === '/api/autostart/install' || p === '/api/autostart/uninstall');
     var authHeader = req.headers['x-proxy-token'] || (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '');
     if (needsToken) {
       const validMaster = config.token && authHeader === config.token;
@@ -1434,7 +1478,7 @@ const server = http.createServer(function (req, res) {
         return sendJson(res, 401, { error: { message: '代理令牌错误（需主控 Key 或任一应用 Key）' } });
       }
       // 未配置任何 Key：本地体验模式，放行
-    } else if (isRouteWrite || isAdminToken || isConfigWrite) {
+    } else if (isRouteWrite || isAdminToken || isConfigWrite || isAutostartWrite) {
       // 账号体系：管理端点统一要求会话 / 主控 Key / 未设密码放行（含本机）
       if (!mgmtAuth(req)) {
         return sendJson(res, 401, { error: { message: '管理操作需登录或主控 Key' } });
@@ -1451,6 +1495,8 @@ const server = http.createServer(function (req, res) {
     if (p === '/v1/logs/clear') return handleLogsClear(res);
     if (p === '/api/config' && req.method === 'PUT') return handleConfigPut(res, body);
     if (p === '/api/config/import' && req.method === 'POST') return handleConfigImport(res, body);
+    if (p === '/api/autostart/install' && req.method === 'POST') return handleAutostartAction(res, 'install');
+    if (p === '/api/autostart/uninstall' && req.method === 'POST') return handleAutostartAction(res, 'uninstall');
     if (p === '/v1/auto/chat/completions') return handleAuto(req, res, body);
     if (p === '/v1/chat/completions') {
       return handleChat(req, res, body).catch(function (e) {

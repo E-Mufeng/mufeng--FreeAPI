@@ -108,7 +108,7 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
         { id: uid(), name: '智谱-主账号', vendor: '智谱 AI', baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
           key: 'sk-demo-zhipu-key', status: '示例', expire: fmtDate(now + 20 * day), scopes: ['语言'] },
         { id: uid(), name: '本地 Ollama', vendor: '本机', baseUrl: 'http://127.0.0.1:11434/v1',
-          key: '', status: '未配置', expire: '', scopes: ['语言', '代码'] },
+          key: '', status: '正常', expire: '', scopes: ['语言', '代码'] },
         { id: uid(), name: 'Google AI Studio', vendor: 'Google', baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
           key: 'sk-demo3m4n5o6p7q8r', status: '已过期', expire: fmtDate(now - 3 * day), scopes: ['多模态'] }
       ],
@@ -125,7 +125,7 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
       relayToken: '',
       proxyMasterToken: '',
       gen: { stage: STAGES[0], scene: '', goal: GOALS[0], custom: '', collapsed: {} },
-      settings: { demoState: 'normal', density: 'comfortable', showMasked: true, confirmDelete: true, intent: false, vaultOn: false, theme: 'light', themeBg: 'default', brightness: 100, fontScale: 100, fontFamily: 'system', startup: 'overview' }
+      settings: { demoState: 'normal', density: 'comfortable', showMasked: true, confirmDelete: true, intent: false, vaultOn: false, theme: 'light', themeBg: 'default', brightness: 100, fontScale: 100, fontFamily: 'system', startup: 'overview', proxyAutostart: false }
     };
   }
 
@@ -146,11 +146,18 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
           d.settings.vaultOn = !!d.settings.vaultOn;
           if (!d.settings.theme) d.settings.theme = 'light';
           if (!d.settings.themeBg) d.settings.themeBg = 'default';
+          if (d.settings.proxyAutostart == null) d.settings.proxyAutostart = false;
           if (d.settings.brightness == null) d.settings.brightness = 100;
           if (d.settings.fontScale == null) d.settings.fontScale = 100;
           if (!d.settings.fontFamily) d.settings.fontFamily = 'system';
           if (!d.settings.startup) d.settings.startup = 'overview';
           (d.apis || []).forEach(function (a) { if (a && a.keyEnc === undefined) a.keyEnc = ''; });
+          // 本地接口（Ollama/LM Studio/本地代理）key 为空是正常状态，不应显示未配置
+          (d.apis || []).forEach(function (a) {
+            if (!a) return;
+            var isLocal = /127\.0\.0\.1|localhost|::1/.test(a.baseUrl || '') || /本机|LocalAI|LM Studio|本地代理/.test((a.vendor || '') + (a.name || ''));
+            if (isLocal && a.status === '未配置') a.status = '正常';
+          });
         }
       }
     } catch (e) { /* 损坏则重建 */ }
@@ -2225,7 +2232,7 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
     var local = 0, unconfig = 0, expired = 0, abnormal = 0, ok = 0;
     DB.apis.forEach(function (a) {
       var isLocal = /127\.0\.0\.1|localhost|::1/.test(a.baseUrl || '') || /本机|LocalAI|LM Studio|本地代理/.test((a.vendor || '') + (a.name || ''));
-      if (isLocal) { local++; return; }
+      if (isLocal) { local++; ok++; return; }
       if (a.status === '正常') { ok++; return; }
       if (a.status === '未配置') {
         if (a.key && !/^sk-demo/i.test(a.key)) unconfig++;
@@ -2547,6 +2554,12 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
         '<span class="sw-text"><b>密钥保险库（口令加密）</b><span>开启后本地密钥以密文存储，打开需输入口令</span></span>' +
         '<button class="switch-btn" type="button" role="switch" data-mact="toggle-vault" aria-checked="' + (s.vaultOn ? 'true' : 'false') + '" aria-label="密钥保险库"></button>' +
       '</div>';
+    var systemBody =
+      '<div class="switch-row">' +
+        '<span class="sw-text"><b>代理开机自启</b><span id="autostartDesc">检测中…</span></span>' +
+        '<button class="switch-btn" type="button" role="switch" data-mact="toggle-autostart" id="autostartSwitch" aria-checked="false" aria-label="代理开机自启" disabled></button>' +
+      '</div>' +
+      '<p class="hint" style="margin:8px 0 0">开启后会在 Windows 启动文件夹创建 free-api-proxy.lnk，下次登录自动在后台运行 http://127.0.0.1:8787。受限环境/沙箱可能注册失败，需真机管理员权限；失败时会提示你手动运行命令。</p>';
     var shortcutsBody =
       '<div class="shortcut-list">' +
         '<div class="shortcut-row"><span class="sc-key">?</span><span>打开快捷示例</span></div>' +
@@ -2609,6 +2622,7 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
         card(ICON.eye, '显示与调试', '界面呈现方式与密钥可见性', displayBody) +
         card(ICON.bolt, '行为', '交互确认与模型自动选择策略', behaviorBody) +
         card(ICON.key, '安全', '本地密钥加密存储开关', securityBody) +
+        card(ICON.power, '系统', '代理进程开机自启与系统级设置', systemBody) +
         accountCard +
         card(ICON.keyboard, '快捷键', '常用键盘操作', shortcutsBody) +
         card(ICON.trash, '数据', '本地缓存与清除', dataBody) +
@@ -2621,6 +2635,56 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
       size: 'lg',
       buttons: btn('恢复示例数据', 'reset-data', 'btn-danger') + btn('完成', 'close', 'btn-primary')
     });
+    fetchAutostartStatus();
+  }
+
+  function fetchAutostartStatus() {
+    var sw = document.getElementById('autostartSwitch');
+    var desc = document.getElementById('autostartDesc');
+    if (!sw || !desc) return;
+    fetch(PROXY_BASE + '/api/autostart/status', { cache: 'no-store', headers: mhdr() })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var on = !!j.enabled;
+        DB.settings.proxyAutostart = on;
+        sw.disabled = false;
+        sw.setAttribute('aria-checked', on ? 'true' : 'false');
+        desc.textContent = on ? '已注册开机自启' : '未注册开机自启';
+        save();
+      })
+      .catch(function (e) {
+        sw.disabled = true;
+        sw.setAttribute('aria-checked', 'false');
+        desc.textContent = '无法检测（代理未运行？）';
+      });
+  }
+  function setProxyAutostart(enable) {
+    var sw = document.getElementById('autostartSwitch');
+    var desc = document.getElementById('autostartDesc');
+    if (sw) sw.disabled = true;
+    if (desc) desc.textContent = (enable ? '注册中…' : '取消中…');
+    fetch(PROXY_BASE + '/api/autostart/' + (enable ? 'install' : 'uninstall'), { method: 'POST', headers: mhdr() })
+      .then(function (r) { return r.json().then(function (j) { return { r: r, j: j }; }); })
+      .then(function (o) {
+        var j = o.j;
+        if (o.r.ok) {
+          DB.settings.proxyAutostart = enable;
+          save();
+          if (sw) { sw.setAttribute('aria-checked', enable ? 'true' : 'false'); sw.disabled = false; }
+          if (desc) desc.textContent = enable ? '已注册开机自启' : '已取消开机自启';
+          toast('开机自启' + (enable ? '已开启' : '已关闭'), 'ok');
+        } else {
+          var msg = (j && j.error && j.error.message) || (j && j.message) || '注册失败';
+          if (sw) { sw.setAttribute('aria-checked', enable ? 'false' : 'true'); sw.disabled = false; }
+          if (desc) desc.textContent = (enable ? '注册失败：' : '取消失败：') + msg;
+          toast(msg, 'err');
+        }
+      })
+      .catch(function (e) {
+        if (sw) { sw.setAttribute('aria-checked', enable ? 'false' : 'true'); sw.disabled = false; }
+        if (desc) desc.textContent = (enable ? '注册失败：' : '取消失败：') + e.message;
+        toast('开机自启操作失败：' + e.message, 'err');
+      });
   }
 
   function radio(val, title, desc, on) {
@@ -4081,9 +4145,13 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
     if (!name) { toast('接口名称不能为空', 'err'); return; }
     if (!/^https?:\/\//i.test(url)) { toast('Base URL 要以 http 或 https 开头', 'err'); return; }
     var id = dlgBody.dataset.editId;
+    var vendor = val('aVendor').trim() || '未标注';
+    var isLocal = /127\.0\.0\.1|localhost|::1/.test(url || '') || /本机|LocalAI|LM Studio|本地代理/.test((vendor || '') + (name || ''));
+    var st = val('aStatus');
+    if (isLocal && st === '未配置') st = '正常';
     var data = {
-      name: name, vendor: val('aVendor').trim() || '未标注', baseUrl: url,
-      key: val('aKey').trim(), status: val('aStatus'), expire: val('aExpire'),
+      name: name, vendor: vendor, baseUrl: url,
+      key: val('aKey').trim(), status: st, expire: val('aExpire'),
       scopes: pickedScopes('aScopes')
     };
     if (id) {
@@ -4175,6 +4243,14 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
 
     // 内容区（事件委托，渲染后无需重新绑定）
     elContent.addEventListener('click', onContentClick);
+
+    // 排序下拉：点击页面任意区域（含 header/sidebar/modal 等）或按 ESC 时收回
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest || !e.target.closest('.custom-select')) closeAllCatalogSortMenus();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeAllCatalogSortMenus();
+    });
 
     // 悬浮工具条：内容区滚动超过 300px 才显示「回到顶部」
     var fabWrap = document.getElementById('fabStack');
@@ -4436,6 +4512,11 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
       b.setAttribute('aria-checked', DB.settings.intent ? 'true' : 'false');
     }
     else if (act === 'toggle-vault') { toggleVault(b); }
+    else if (act === 'toggle-autostart') {
+      if (b.disabled) return;
+      var enable = b.getAttribute('aria-checked') !== 'true';
+      setProxyAutostart(enable);
+    }
     else if (act === 'do-vault-enable') { doVaultEnable(b); }
     else if (act === 'do-vault-unlock') { doVaultUnlock(b); }
     else if (act.indexOf('do-del:') === 0) {

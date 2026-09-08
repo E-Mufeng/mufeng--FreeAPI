@@ -2552,6 +2552,7 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
 }
 .custom-select-option:hover, .custom-select-option:focus-visible { background: var(--violet-50); color: var(--violet-700); outline: none; }
 .custom-select-option.is-active { background: var(--violet-500); color: #fff; }
+.custom-select-menu[hidden] { display: none !important; }
 
 .filter-tools .seg { flex: none; }
 .filter-tools .seg button { min-height: 28px; padding: 0 11px; font-size: 12.5px; }
