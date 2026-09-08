@@ -265,6 +265,20 @@ body.theme-cyberpunk .mcard,
 body.theme-cyberpunk .relay-card {
   box-shadow: 0 10px 34px rgba(0,0,0,.28), inset 0 1px 0 rgba(0,240,255,.16);
 }
+/* 赛博朋克主题：图表/进度条玻璃化，避免实色块压盖背景 */
+body.theme-cyberpunk .cons-stat { background: var(--surface-glass-card); }
+body.theme-cyberpunk .hbar-track { background: rgba(0,240,255,.10); }
+body.theme-cyberpunk .hbar-bar.tone-ok { background: linear-gradient(90deg, rgba(0,240,255,.85), rgba(0,196,255,.65)); box-shadow: 0 0 10px rgba(0,240,255,.35); }
+body.theme-cyberpunk .hbar-bar.tone-info { background: linear-gradient(90deg, rgba(189,0,255,.85), rgba(124,92,240,.65)); box-shadow: 0 0 10px rgba(189,0,255,.35); }
+body.theme-cyberpunk .vbar { background: linear-gradient(180deg, rgba(0,240,255,.85), rgba(0,196,255,.55)); box-shadow: 0 0 10px rgba(0,240,255,.30); }
+body.theme-cyberpunk .vbar:hover { background: linear-gradient(180deg, rgba(0,240,255,.95), rgba(0,220,255,.75)); }
+body.theme-cyberpunk .bar { background: rgba(0,240,255,.12); }
+body.theme-cyberpunk .bar > i { background: linear-gradient(90deg, rgba(0,240,255,.85), rgba(0,196,255,.55)); box-shadow: 0 0 8px rgba(0,240,255,.35); }
+body.theme-cyberpunk .bar.ok > i { background: linear-gradient(90deg, rgba(0,240,136,.85), rgba(0,196,120,.55)); box-shadow: 0 0 8px rgba(0,240,136,.35); }
+body.theme-cyberpunk .bar.warn > i { background: linear-gradient(90deg, rgba(255,204,0,.85), rgba(255,170,0,.55)); box-shadow: 0 0 8px rgba(255,204,0,.35); }
+body.theme-cyberpunk .bar.err > i { background: linear-gradient(90deg, rgba(255,0,170,.85), rgba(255,0,120,.55)); box-shadow: 0 0 8px rgba(255,0,170,.35); }
+body.theme-cyberpunk .spark i { background: linear-gradient(180deg, rgba(0,240,255,.85), rgba(0,196,255,.55)); box-shadow: 0 0 8px rgba(0,240,255,.30); }
+body.theme-cyberpunk .spark i.is-zero { background: rgba(0,240,255,.15); }
 
 /* ============================================================
    L0 · 基础重置
