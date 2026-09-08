@@ -308,9 +308,29 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
   // 不再在浏览器本地做示例规则的模型名修正（避免本地改动与服务端不一致）。保留函数为空实现以免动调用点。
   function fixRelayRules() { /* no-op：relay 规则现为服务端权威 */ }
 
+  // 确保本地至少保留 2 条示例中转规则，避免空数据时中转规则页显示 0 条
+  function ensureDefaultRoutes() {
+    try {
+      if (!Array.isArray(DB.routes)) DB.routes = [];
+      if (DB.routes.length >= 2) return;
+      var defs = seed().routes || [];
+      var existing = {};
+      DB.routes.forEach(function (r) { if (r && r.name) existing[r.name] = true; });
+      var added = 0;
+      defs.forEach(function (r) {
+        if (!r || !r.name) return;
+        if (existing[r.name]) return;
+        DB.routes.push(JSON.parse(JSON.stringify(r)));
+        added++;
+      });
+      if (added) { save(); console.log('[ensureDefaultRoutes] 已补齐 ' + added + ' 条默认中转规则'); }
+    } catch (e) { console.error('[ensureDefaultRoutes] 失败', e); }
+  }
+
   var DB = load();
   cleanupOpenRouterApis();
   ensureDefaultApis();
+  ensureDefaultRoutes();
   fixRelayRules();
   var vaultPass = null;        // 会话内口令（不落盘）
   var vaultUnlocked = false;   // 当前会话是否已解锁
@@ -1686,7 +1706,7 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
         DB.relayToken = j.token; save();
         var el = document.getElementById('relayToken');
         if (el) el.textContent = j.token;
-        var cp = document.querySelector('[data-act="relay-token-copy"]');
+        var cp = document.querySelector('[data-mact="relay-token-copy"]');
         if (cp) cp.removeAttribute('disabled');
         toast('已生成中转站 Key 并保存到本机', 'ok');
       })
@@ -1742,10 +1762,10 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
           (t.lastUsed ? ' <span class="hint">最近使用 ' + esc(fmtFull(new Date(t.lastUsed).getTime())) + '</span>' : '') +
         '</div>' +
         '<div class="row-actions">' +
-          '<button class="btn btn-ghost btn-sm" type="button" data-act="app-token-copy" data-id="' + esc(t.id) + '">' + ICON.copy + '复制</button>' +
-          '<button class="btn btn-outline btn-sm" type="button" data-act="app-token-toggle" data-id="' + esc(t.id) + '">' + (t.enabled ? '停用' : '启用') + '</button>' +
-          '<button class="btn btn-outline btn-sm" type="button" data-act="app-token-rename" data-id="' + esc(t.id) + '">' + ICON.edit + '改名</button>' +
-          '<button class="btn btn-danger btn-sm" type="button" data-act="app-token-del" data-id="' + esc(t.id) + '">' + ICON.trash + '</button>' +
+          '<button class="btn btn-ghost btn-sm" type="button" data-mact="app-token-copy" data-id="' + esc(t.id) + '">' + ICON.copy + '复制</button>' +
+          '<button class="btn btn-outline btn-sm" type="button" data-mact="app-token-toggle" data-id="' + esc(t.id) + '">' + (t.enabled ? '停用' : '启用') + '</button>' +
+          '<button class="btn btn-outline btn-sm" type="button" data-mact="app-token-rename" data-id="' + esc(t.id) + '">' + ICON.edit + '改名</button>' +
+          '<button class="btn btn-danger btn-sm" type="button" data-mact="app-token-del" data-id="' + esc(t.id) + '">' + ICON.trash + '</button>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -1755,7 +1775,7 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
         '<div class="panel-body">' +
           '<div class="intent-row">' +
             '<span class="intent-state">意图识别：<b>' + (on ? '已开启' : '已关闭') + '</b></span>' +
-            '<button class="btn btn-' + (on ? 'outline' : 'primary') + ' btn-sm" type="button" data-act="intent-toggle">' + (on ? '关闭' : '开启') + '意图识别</button>' +
+            '<button class="btn btn-' + (on ? 'outline' : 'primary') + ' btn-sm" type="button" data-mact="intent-toggle">' + (on ? '关闭' : '开启') + '意图识别</button>' +
             '<span class="intent-state">已启用模型 <b>' + enabledN + '</b> 个</span>' +
             (proxyOnline ? '<span class="intent-state">代理已记录 <b>' + enabledCount + '</b> 个</span>' : '') +
           '</div>' +
@@ -1764,8 +1784,8 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
             '<div class="ro-label">中转站主控 Key（外部 AI 应用配对 / 管理端点用）</div>' +
             '<div class="token-display">' +
               '<code id="relayToken">' + esc(tokenTxt) + '</code>' +
-              '<button class="btn btn-outline btn-sm" type="button" data-act="relay-token-gen">' + ICON.refresh + '生成</button>' +
-              '<button class="btn btn-ghost btn-sm" type="button" data-act="relay-token-copy"' + (DB.relayToken ? '' : ' disabled') + '>' + ICON.copy + '复制</button>' +
+              '<button class="btn btn-outline btn-sm" type="button" data-mact="relay-token-gen">' + ICON.refresh + '生成</button>' +
+              '<button class="btn btn-ghost btn-sm" type="button" data-mact="relay-token-copy"' + (DB.relayToken ? '' : ' disabled') + '>' + ICON.copy + '复制</button>' +
             '</div>' +
             '<p class="hint" style="margin-top:8px">外部 AI 应用填 <code>BaseURL = ' + esc(PROXY_V1) + '</code> 并填此 Key 即可配对调用。Key 同时保存在本机，供本页「试用」调用。</p>' +
             '<p class="hint" style="margin-top:6px;color:var(--warn)">注意：部分客户端（如 LobsterAI / CherryStudio）的「测试连接」只访问 <code>/v1/models</code>，该端点无需密钥也会返回成功；实际对话必须填对上述主控 Key 或任意应用 Key，否则会出现 timeout / Connection error。</p>' +
@@ -1773,7 +1793,7 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
           '<div class="intent-try">' +
             '<label class="ro-label">试用（自动选模型）</label>' +
             '<textarea id="intentPrompt" class="input" placeholder="输入一段需求，代理会按额度/难度自动挑选已启用模型并回复…"></textarea>' +
-            '<div style="margin-top:10px"><button class="btn btn-primary btn-sm" type="button" data-act="intent-try">' + ICON.bolt + '发送（自动选模型）</button></div>' +
+            '<div style="margin-top:10px"><button class="btn btn-primary btn-sm" type="button" data-mact="intent-try">' + ICON.bolt + '发送（自动选模型）</button></div>' +
             '<div id="intentResult" class="intent-result"></div>' +
           '</div>' +
         '</div>' +
@@ -1784,7 +1804,7 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
           (appTokens.length
             ? '<div class="apptoken-list">' + appRows + '</div>'
             : '<p class="hint">还没有应用 Key。点「新增应用 Key」为 CherryStudio / NextChat 等生成一个独立配对 Key。</p>') +
-          '<div style="margin-top:10px"><button class="btn btn-primary btn-sm" type="button" data-act="app-token-new">' + ICON.plus + '新增应用 Key</button></div>' +
+          '<div style="margin-top:10px"><button class="btn btn-primary btn-sm" type="button" data-mact="app-token-new">' + ICON.plus + '新增应用 Key</button></div>' +
           '<p class="hint" style="margin-top:8px">应用 Key 仅用于 <code>chat/completions</code> 与 <code>auto/chat/completions</code> 调用；主控 Key 用于管理端点与「试用」。两者都在本机 <code>config.json</code>。代理未运行时此处为空。</p>' +
         '</div>' +
       '</section>' +
@@ -1795,13 +1815,13 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
             '<select id="classifierSel" class="input" style="max-width:380px">' +
               '<option value="">（不使用分类模型，按难度评分兜底）</option>' + classifierOptionsHtml() +
             '</select>' +
-            '<button class="btn btn-primary btn-sm" type="button" data-act="classifier-set">设为分类器</button>' +
+            '<button class="btn btn-primary btn-sm" type="button" data-mact="classifier-set">设为分类器</button>' +
           '</div>' +
           '<p class="hint" style="margin-top:8px">当前分类模型：<b>' + esc(proxyClassifier || '未设置（评分兜底）') + '</b></p>' +
           '<div class="intent-try" style="margin-top:6px">' +
             '<label class="ro-label">测试选模型</label>' +
             '<textarea id="classifierTest" class="input" placeholder="输入一句需求，看代理会挑哪个模型（需开启意图识别并启用模型）"></textarea>' +
-            '<div style="margin-top:8px"><button class="btn btn-outline btn-sm" type="button" data-act="classifier-test">' + ICON.bolt + '测试选模型</button></div>' +
+            '<div style="margin-top:8px"><button class="btn btn-outline btn-sm" type="button" data-mact="classifier-test">' + ICON.bolt + '测试选模型</button></div>' +
             '<div id="classifierResult" class="intent-result"></div>' +
           '</div>' +
         '</div>' +
@@ -4517,6 +4537,17 @@ import { ICON, STAGES, GOALS, SCOPES, API_TEMPLATES } from './modules/constants.
       var enable = b.getAttribute('aria-checked') !== 'true';
       setProxyAutostart(enable);
     }
+    else if (act === 'intent-toggle') { setIntentIntent(!DB.settings.intent); }
+    else if (act === 'relay-token-gen') { genRelayToken(); }
+    else if (act === 'relay-token-copy') { copyRelayToken(); }
+    else if (act === 'intent-try') { tryIntent(); }
+    else if (act === 'app-token-new') { newAppToken(); }
+    else if (act === 'app-token-copy') { copyAppToken(b.getAttribute('data-id')); }
+    else if (act === 'app-token-toggle') { toggleAppToken(b.getAttribute('data-id')); }
+    else if (act === 'app-token-rename') { renameAppToken(b.getAttribute('data-id')); }
+    else if (act === 'app-token-del') { delAppToken(b.getAttribute('data-id')); }
+    else if (act === 'classifier-set') { setClassifier(); }
+    else if (act === 'classifier-test') { testClassifier(); }
     else if (act === 'do-vault-enable') { doVaultEnable(b); }
     else if (act === 'do-vault-unlock') { doVaultUnlock(b); }
     else if (act.indexOf('do-del:') === 0) {

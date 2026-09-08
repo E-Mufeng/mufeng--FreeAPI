@@ -139,7 +139,34 @@ function loadConfig() {
   c.accessPassword = c.accessPassword || '';   // 账号体系：访问密码（scrypt hash: salt:hash，空=本地体验模式放行）
   // 路线2b：速率限制配置段（整段兜底默认值；校验失败仅关限流，不阻断代理启动）
   c.rateLimit = (c.rateLimit && typeof c.rateLimit === 'object') ? c.rateLimit : {};
+  ensureDefaultRelayRules(c);
   return c;
+}
+
+// 若 config.json 中 relay 为空，自动补齐示例中转规则，避免 SPA 中转规则页显示 0 条
+function ensureDefaultRelayRules(cfg) {
+  if (!cfg || !Array.isArray(cfg.relay) || cfg.relay.length >= 2) return;
+  if (!Array.isArray(cfg.upstreams) || cfg.upstreams.length === 0) return;
+  function findUp(name) {
+    return cfg.upstreams.find(function (u) {
+      return (u.name || '').indexOf(name) >= 0 || (u.vendor || '').indexOf(name) >= 0;
+    });
+  }
+  const defs = [];
+  const bailian = findUp('阿里云百炼');
+  const zhipu = findUp('智谱');
+  if (bailian && bailian.models && bailian.models.length) {
+    const m = bailian.models[0];
+    defs.push({ id: crypto.randomBytes(9).toString('base64url'), name: '对话-主线路', upstream: bailian.name, model: m, enabled: true, weight: 70, note: '优先走，失败切备用' });
+  }
+  if (zhipu && zhipu.models && zhipu.models.length) {
+    const m = zhipu.models[0];
+    defs.push({ id: crypto.randomBytes(9).toString('base64url'), name: '对话-备用线', upstream: zhipu.name, model: m, enabled: true, weight: 30, note: '主线路超时后接管' });
+  }
+  if (defs.length) {
+    cfg.relay = defs;
+    console.log('[proxy] 已自动补齐 ' + defs.length + ' 条示例中转规则');
+  }
 }
 
 function reloadConfig() {
