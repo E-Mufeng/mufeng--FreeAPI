@@ -218,20 +218,22 @@ body.theme-cyberpunk {
   --surface-1: #0a0f1c;
   --surface-2: #070b16;
   --surface-3: #12192e;
-  --surface-glass: rgba(12,22,38,.30);
-  --surface-glass-card:  rgba(12,22,38,.42);
-  --surface-glass-solid: rgba(12,22,38,.60);
+  /* 玻璃大幅调透：背景图必须清晰可见 */
+  --surface-glass: rgba(12,22,38,.15);
+  --surface-glass-card:  rgba(12,22,38,.22);
+  --surface-glass-solid: rgba(12,22,38,.32);
   --r: 12px; --r-lg: 12px; --r-xl: 12px;
-  --ink: #e8f9ff;
-  --ink-1: #e8f9ff;
-  --ink-2: #9ecbd9;
-  --ink-3: #6b8f9d;
-  --ink-4: #4a6672;
-  --navy: #e8f9ff;
-  --navy-2: #bce4f0;
-  --line: rgba(86,210,222,.22);
-  --line-2: rgba(86,210,222,.32);
-  --gray-0: #e8f9ff; --gray-25: #0a0f1c; --gray-50: #070b16;
+  /* 文字纯白/高亮，补偿透明背景 */
+  --ink: #ffffff;
+  --ink-1: #ffffff;
+  --ink-2: #e0f7ff;
+  --ink-3: #a8d8e8;
+  --ink-4: #6b9aa8;
+  --navy: #ffffff;
+  --navy-2: #c8f3ff;
+  --line: rgba(86,210,222,.32);
+  --line-2: rgba(86,240,255,.46);
+  --gray-0: #ffffff; --gray-25: #0a0f1c; --gray-50: #070b16;
   --gray-75: #0d1422; --gray-100: #12192e; --gray-150: #1a2a3d;
   --gray-200: #223548; --gray-300: #2f4a5c; --gray-400: #4a6672;
   --gray-500: #6b8f9d; --gray-600: #8ab0bf; --gray-700: #9ecbd9;
@@ -245,14 +247,15 @@ body.theme-cyberpunk {
   --warn-soft: rgba(255,204,0,.14); --warn-line: rgba(255,204,0,.35);
   --err-soft: rgba(255,0,170,.14); --err-line: rgba(255,0,170,.35);
   --info-soft: rgba(0,240,255,.14); --info-line: rgba(0,240,255,.35);
-  --bg-overlay-start: rgba(5,7,13,.08);
-  --bg-overlay-end: rgba(5,7,13,.18);
-  --bg-tint-1: rgba(0,240,255,.08);
-  --bg-tint-2: rgba(189,0,255,.06);
-  --bg-tint-3: rgba(255,0,170,.04);
-  --grid-line: rgba(0,240,255,.03);
-  --topbar-glass: rgba(12,22,38,.50);
-  --sidebar-glass: linear-gradient(180deg, rgba(12,22,38,.55) 0%, rgba(12,22,38,.32) 100%);
+  /* 遮罩层调淡，避免压暗背景图 */
+  --bg-overlay-start: rgba(5,7,13,.04);
+  --bg-overlay-end: rgba(5,7,13,.10);
+  --bg-tint-1: rgba(0,240,255,.06);
+  --bg-tint-2: rgba(189,0,255,.04);
+  --bg-tint-3: rgba(255,0,170,.03);
+  --grid-line: rgba(0,240,255,.015);
+  --topbar-glass: rgba(12,22,38,.25);
+  --sidebar-glass: linear-gradient(180deg, rgba(12,22,38,.30) 0%, rgba(12,22,38,.16) 100%);
   --sh-glow: 0 0 0 1px rgba(86,210,222,.30), 0 8px 28px rgba(0,240,255,.22);
   --focus: rgba(86,210,222,.32);
 }
@@ -362,8 +365,8 @@ body::after {
     linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: 36px 36px;
-  -webkit-mask-image: radial-gradient(ellipse 130% 100% at 50% 0%, #000 28%, transparent 82%);
-          mask-image: radial-gradient(ellipse 130% 100% at 50% 0%, #000 28%, transparent 82%);
+  -webkit-mask-image: radial-gradient(ellipse 130% 100% at 50% 0%, #000 18%, transparent 72%);
+          mask-image: radial-gradient(ellipse 130% 100% at 50% 0%, #000 18%, transparent 72%);
 }
 /* 流动光斑层（L1+） */
 .aurora {
@@ -371,7 +374,7 @@ body::after {
 }
 .aurora i {
   position: absolute; border-radius: 50%; filter: blur(90px);
-  opacity: .34; animation: aurora-drift 26s ease-in-out infinite alternate;
+  opacity: .22; animation: aurora-drift 26s ease-in-out infinite alternate;
 }
 .aurora i:nth-child(1) { width: 520px; height: 320px; left: 4%; top: 4%; background: rgba(91,110,245,.22); animation-duration: 30s; }
 .aurora i:nth-child(2) { width: 480px; height: 280px; right: 4%; top: 14%; background: rgba(124,92,240,.16); animation-duration: 36s; animation-delay: -8s; }
@@ -381,7 +384,7 @@ body::after {
   100% { transform: translate3d(2%, 2%, 0) scale(1.03); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .aurora i { animation: none; opacity: .24; }
+  .aurora i { animation: none; opacity: .16; }
 }
 #viewWelcome { position: relative; z-index: 1; }
 /* 主应用背景主题（通过设置切换） */
@@ -460,8 +463,8 @@ body.theme-cyberpunk #viewWelcome .wv-card .ico {
   display: flex; align-items: center; gap: 14px;
   height: var(--topbar-h); padding: 0 20px;
   background: var(--topbar-glass);
-  -webkit-backdrop-filter: saturate(1.8) blur(10px);
-          backdrop-filter: saturate(1.8) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   /* 用渐变伪元素替代硬边框：中间实、两端隐，视觉更轻 */
   border-bottom: 1px solid transparent;
   background-clip: padding-box;
@@ -501,7 +504,7 @@ body.theme-cyberpunk #viewWelcome .wv-card .ico {
   display: flex; flex-direction: column; gap: 3px;
   padding: 14px 12px 16px;
   background: var(--sidebar-glass);
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px); backdrop-filter: saturate(1.2) blur(6px);
   border-right: 1px solid var(--line);
   overflow-y: auto; overflow-x: hidden;
 }
@@ -563,8 +566,8 @@ body.theme-cyberpunk #viewWelcome .wv-card .ico {
   margin: 12px 2px 0; padding: 12px 13px; border-radius: var(--r);
   background: var(--surface-glass);
   border: 1px solid var(--line);
-  -webkit-backdrop-filter: saturate(1.4) blur(10px);
-          backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   font-size: var(--fs-sm); line-height: var(--lh-snug); color: var(--ink-3);
 }
 .side-tip b { color: var(--navy); display: block; margin-bottom: 4px; font-size: var(--fs-sm); font-weight: var(--fw-b); }
@@ -612,11 +615,11 @@ body.theme-cyberpunk #viewWelcome .wv-card .ico {
 .panel {
   position: relative;
   background: var(--surface-glass-card);
-  -webkit-backdrop-filter: saturate(1.6) blur(10px);
-          backdrop-filter: saturate(1.6) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  box-shadow: var(--sh-2), inset 0 1px 0 rgba(255,255,255,.18);
+  box-shadow: var(--sh-2), inset 0 1px 0 rgba(255,255,255,.10);
   transition: box-shadow var(--dur-3) var(--ease), border-color var(--dur-3) var(--ease), transform .35s var(--ease);
 }
 .panel + .panel { margin-top: 18px; }
@@ -627,7 +630,7 @@ body.theme-cyberpunk #viewWelcome .wv-card .ico {
 .panel::before {
   content: ""; position: absolute; left: 1px; right: 1px; top: 0; height: 1px;
   border-radius: var(--r-lg) var(--r-lg) 0 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent);
+  background: linear-gradient(90deg, transparent, rgba(86,210,222,.55), transparent);
   pointer-events: none;
 }
 .panel.is-interactive:hover { border-color: var(--line-2); box-shadow: var(--sh-3); transform: translateY(-4px); }
@@ -661,8 +664,8 @@ body.theme-cyberpunk #viewWelcome .wv-card .ico {
 .welcome-view .wv-badge,
 .welcome-view .wv-actions .btn-ghost {
   background: var(--surface-glass);
-  -webkit-backdrop-filter: saturate(1.6) blur(12px);
-          backdrop-filter: saturate(1.6) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .tile:hover,
 .radio-item:hover,
@@ -671,8 +674,8 @@ body.theme-cyberpunk #viewWelcome .wv-card .ico {
 .seg button.is-active:hover,
 .welcome-view .wv-actions .btn-ghost:hover {
   background: var(--surface-glass);
-  -webkit-backdrop-filter: saturate(1.8) blur(12px);
-          backdrop-filter: saturate(1.8) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .tbl tbody tr:hover { background: var(--surface-glass); }
 
@@ -684,8 +687,8 @@ body.theme-cyberpunk #viewWelcome .wv-card .ico {
 .catalog-note,
 .tile {
   background: var(--surface-glass-card);
-  -webkit-backdrop-filter: saturate(1.6) blur(10px);
-          backdrop-filter: saturate(1.6) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .stat,
 .welcome-view .wv-card,
@@ -694,8 +697,8 @@ body.theme-cyberpunk #viewWelcome .wv-card .ico {
 .panel-head,
 .panel-foot {
   background: var(--surface-glass-solid);
-  -webkit-backdrop-filter: saturate(1.6) blur(10px);
-          backdrop-filter: saturate(1.6) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 
 .panel-head {
@@ -747,8 +750,8 @@ body.theme-cyberpunk #viewWelcome .wv-card .ico {
   background: var(--surface-glass); color: var(--ink);
   font-size: 14px; font-weight: var(--fw-sb); white-space: nowrap;
   cursor: pointer; user-select: none;
-  -webkit-backdrop-filter: saturate(1.4) blur(8px);
-          backdrop-filter: saturate(1.4) blur(8px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   transition: background var(--dur-2) var(--ease), color var(--dur-2) var(--ease),
               border-color var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease),
               transform var(--dur-1) var(--ease), opacity var(--dur-2) var(--ease);
@@ -879,8 +882,8 @@ body.theme-cyberpunk #viewWelcome .wv-card .ico {
   width: 100%; min-height: 42px; padding: 9px 12px;
   border: 1px solid var(--line-2); border-radius: var(--r-sm);
   background: var(--surface-glass); color: var(--ink); font-size: 14px;
-  -webkit-backdrop-filter: saturate(1.4) blur(8px);
-          backdrop-filter: saturate(1.4) blur(8px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   box-shadow: inset 0 1px 2px rgba(15,30,61,.02);
   transition: border-color var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease), background var(--dur-2) var(--ease);
 }
@@ -954,7 +957,7 @@ option { background: var(--surface); color: var(--ink); }
 .switch-row .sw-text span { display: block; font-size: var(--fs-sm); color: var(--ink-3); margin-top: 2px; }
 
 /* ---------- 分段控件 ---------- */
-.seg { display: inline-flex; padding: 3px; gap: 3px; background: var(--surface-glass); border: 1px solid var(--line); border-radius: 10px; -webkit-backdrop-filter: saturate(1.4) blur(8px); backdrop-filter: saturate(1.4) blur(8px); }
+.seg { display: inline-flex; padding: 3px; gap: 3px; background: var(--surface-glass); border: 1px solid var(--line); border-radius: 10px; -webkit-backdrop-filter: saturate(1.2) blur(6px); backdrop-filter: saturate(1.2) blur(6px); }
 .seg button {
   min-height: 32px; padding: 0 14px; border: 1px solid transparent; border-radius: 7px;
   background: transparent; color: var(--ink-2); font-size: var(--fs-base); font-weight: var(--fw-sb); cursor: pointer;
@@ -970,8 +973,8 @@ option { background: var(--surface); color: var(--ink); }
   display: flex; align-items: flex-start; gap: 10px; padding: 11px 13px;
   border: 1px solid var(--line-2); border-radius: var(--r-sm); cursor: pointer;
   background: var(--surface-glass);
-  -webkit-backdrop-filter: saturate(1.2) blur(8px);
-          backdrop-filter: saturate(1.2) blur(8px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   transition: border-color var(--dur-2) var(--ease), background var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
 }
 .radio-item:hover { border-color: var(--violet-300); background: var(--surface-glass); }
@@ -988,8 +991,8 @@ option { background: var(--surface); color: var(--ink); }
   position: relative; overflow: hidden;
   padding: 16px; border-radius: var(--r-xl);
   background: var(--surface-glass-card);
-  -webkit-backdrop-filter: saturate(1.6) blur(10px);
-          backdrop-filter: saturate(1.6) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   border: 1px solid var(--line); box-shadow: var(--sh-2), inset 0 1px 0 rgba(255,255,255,.18);
   transition: border-color .35s var(--ease), box-shadow .35s var(--ease), transform .35s var(--ease);
 }
@@ -1029,8 +1032,8 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   margin-top: 10px; padding: 9px 11px; border-radius: 9px;
   background: var(--surface-glass);
   border: 1px dashed var(--line); font-size: var(--fs-sm); color: var(--ink-2); line-height: var(--lh-snug);
-  -webkit-backdrop-filter: saturate(1.4) blur(10px);
-          backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .mc-quota b { color: var(--ink); }
 .mc-quota.is-set { border-style: solid; border-color: var(--violet-200); background: var(--violet-50); }
@@ -1044,8 +1047,8 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   background: var(--surface-glass);
   border: 1px solid var(--line); border-radius: var(--r-sm);
   padding: 8px 10px; color: var(--ink-2); font-size: var(--fs-base);
-  -webkit-backdrop-filter: saturate(1.4) blur(10px);
-          backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 
 /* 卡片开关（label 版，与 .switch-btn 互不干扰） */
@@ -1068,8 +1071,8 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   padding: 12px 14px; border-radius: var(--r);
   background: var(--surface-glass);
   border: 1px solid var(--line);
-  -webkit-backdrop-filter: saturate(1.6) blur(16px);
-          backdrop-filter: saturate(1.6) blur(16px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   font-size: var(--fs-base); color: var(--ink-2); line-height: var(--lh-base);
 }
 .catalog-note svg { flex: none; margin-top: 2px; color: var(--violet); }
@@ -1087,8 +1090,8 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   height: 34px; padding: 0 13px; border-radius: var(--r-full); cursor: pointer;
   border: 1px solid var(--line); background: var(--surface-glass); color: var(--ink-2);
   font-size: var(--fs-base); font-weight: var(--fw-sb);
-  -webkit-backdrop-filter: saturate(1.4) blur(8px);
-          backdrop-filter: saturate(1.4) blur(8px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   transition: background var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease),
               color var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
 }
@@ -1106,8 +1109,8 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   display: flex; flex-wrap: wrap;
   background: var(--surface-glass); border: 1px solid var(--line); border-radius: var(--r);
   margin: 0 0 14px; overflow: hidden;
-  -webkit-backdrop-filter: saturate(1.4) blur(12px);
-          backdrop-filter: saturate(1.4) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .tab-item {
   position: relative;
@@ -1140,19 +1143,19 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
 /* ============================================================
    L4 · 业务内容：表格
    ============================================================ */
-.tbl-wrap { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface-glass); -webkit-backdrop-filter: saturate(1.4) blur(12px); backdrop-filter: saturate(1.4) blur(12px); }
+.tbl-wrap { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface-glass); -webkit-backdrop-filter: saturate(1.2) blur(6px); backdrop-filter: saturate(1.2) blur(6px); }
 .tbl { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 720px; }
 .tbl th, .tbl td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .tbl thead th {
   background: var(--surface-glass);
-  -webkit-backdrop-filter: saturate(1.4) blur(12px);
-          backdrop-filter: saturate(1.4) blur(12px);
-  color: var(--ink-3); font-size: var(--fs-sm); font-weight: var(--fw-b);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
+  color: var(--ink-2); font-size: var(--fs-sm); font-weight: var(--fw-b);
   letter-spacing: .3px; white-space: nowrap; position: sticky; top: 0; z-index: 1;
   border-bottom: 1px solid var(--line-2);
 }
 .tbl tbody tr { transition: background var(--dur-1) var(--ease), opacity var(--dur-2) var(--ease); }
-.tbl tbody tr:hover { background: var(--surface-glass); }
+.tbl tbody tr:hover { background: rgba(255,255,255,.08); }
 .tbl tbody tr.is-loading { background: var(--surface-glass); pointer-events: none; }
 .tbl tbody tr.is-loading td { opacity: .45; }
 .tbl tbody tr.is-disabled { background: var(--surface-glass); }
@@ -1200,8 +1203,8 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   color: var(--violet-700);
   border-color: rgba(91,110,245,.18);
   box-shadow: 0 2px 8px rgba(91,110,245,.10);
-  -webkit-backdrop-filter: saturate(1.4) blur(8px);
-          backdrop-filter: saturate(1.4) blur(8px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .rt-label { white-space: nowrap; }
 .rt-cnt {
@@ -1224,12 +1227,12 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   border-radius: 0;
   background: var(--surface-glass);
   padding: 10px 18px;
-  -webkit-backdrop-filter: saturate(1.4) blur(10px);
-          backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 
 .relay-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-.relay-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; height: 100%; border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--surface-glass); -webkit-backdrop-filter: saturate(1.6) blur(12px); backdrop-filter: saturate(1.6) blur(12px); box-shadow: var(--sh-2), inset 0 1px 0 rgba(255,255,255,.18); transition: box-shadow .35s var(--ease), transform .35s var(--ease), border-color .35s var(--ease); }
+.relay-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; height: 100%; border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--surface-glass); -webkit-backdrop-filter: saturate(1.2) blur(6px); backdrop-filter: saturate(1.2) blur(6px); box-shadow: var(--sh-2), inset 0 1px 0 rgba(255,255,255,.18); transition: box-shadow .35s var(--ease), transform .35s var(--ease), border-color .35s var(--ease); }
 .relay-card:hover { box-shadow: var(--sh-3), 0 0 0 1px rgba(91,110,245,.12); border-color: var(--violet-200); transform: translateY(-8px); }
 .relay-card.is-off { opacity: .72; background: var(--surface-glass); }
 .relay-card.is-off { opacity: .72; background: var(--surface-glass); }
@@ -1282,8 +1285,8 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
 .stat {
   position: relative; overflow: hidden;
   padding: 16px 18px; border-radius: var(--r-xl); background: var(--surface-glass-solid);
-  -webkit-backdrop-filter: saturate(1.6) blur(10px);
-          backdrop-filter: saturate(1.6) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   border: 1px solid var(--line); box-shadow: var(--sh-2), inset 0 1px 0 rgba(255,255,255,.18);
   transition: border-color .35s var(--ease), box-shadow .35s var(--ease), transform .35s var(--ease);
 }
@@ -1321,8 +1324,8 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   margin: 14px 0 4px; padding: 14px; border-radius: var(--r);
   background: var(--surface-glass);
   border: 1px solid var(--line);
-  -webkit-backdrop-filter: saturate(1.4) blur(10px);
-          backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .intent-token .ro-label { font-size: var(--fs-sm); color: var(--ink-3); margin-bottom: 8px; }
 .token-display { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -1330,8 +1333,8 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   background: var(--surface-glass); border: 1px solid var(--line); border-radius: var(--r-sm);
   padding: 7px 10px; font-size: var(--fs-sm); color: var(--ink);
-  -webkit-backdrop-filter: saturate(1.4) blur(8px);
-          backdrop-filter: saturate(1.4) blur(8px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   word-break: break-all; flex: 1 1 240px; min-width: 0;
 }
 .intent-try { margin-top: 16px; }
@@ -1404,14 +1407,14 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
 }
 .code-block .copy:hover { background: rgba(255,255,255,.2); color: #fff; }
 
-.result-block { border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--surface-glass); -webkit-backdrop-filter: saturate(1.4) blur(10px); backdrop-filter: saturate(1.4) blur(10px); }
+.result-block { border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--surface-glass); -webkit-backdrop-filter: saturate(1.2) blur(6px); backdrop-filter: saturate(1.2) blur(6px); }
 .result-block + .result-block { margin-top: 14px; }
 .rb-head {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 14px; background: var(--surface-glass);
   border-bottom: 1px solid var(--line); font-size: var(--fs-base); font-weight: var(--fw-b); color: var(--navy);
-  -webkit-backdrop-filter: saturate(1.4) blur(12px);
-          backdrop-filter: saturate(1.4) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .rb-head .rb-right { margin-left: auto; }
 .rb-body { padding: 14px; }
@@ -1480,8 +1483,8 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
 .nest {
   padding: 12px 14px; border-radius: var(--r-sm);
   background: var(--surface-glass); border: 1px solid var(--line);
-  -webkit-backdrop-filter: saturate(1.4) blur(10px);
-          backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .nest + .nest { margin-top: 10px; }
 
@@ -1573,19 +1576,19 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   background: var(--surface-glass); border: 1px solid var(--line);
   border-radius: var(--r-xl); box-shadow: var(--sh-4);
   overflow: hidden; animation: popIn .26s var(--ease-back);
-  -webkit-backdrop-filter: saturate(1.6) blur(20px);
-          backdrop-filter: saturate(1.6) blur(20px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .dialog.size-lg { max-width: 720px; }
 .dialog.size-sm { max-width: 420px; }
 @keyframes popIn { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: none; } }
 
-.dlg-head { flex: none; display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px 14px; border-bottom: 1px solid var(--line); background: var(--surface-glass); -webkit-backdrop-filter: saturate(1.4) blur(12px); backdrop-filter: saturate(1.4) blur(12px); }
+.dlg-head { flex: none; display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px 14px; border-bottom: 1px solid var(--line); background: var(--surface-glass); -webkit-backdrop-filter: saturate(1.2) blur(6px); backdrop-filter: saturate(1.2) blur(6px); }
 .dlg-head h3 { font-size: var(--fs-xl); font-weight: var(--fw-b); color: var(--navy); letter-spacing: -.2px; }
 .dlg-head .dlg-sub { margin-top: 4px; font-size: var(--fs-base); color: var(--ink-3); }
 .dlg-close { margin-left: auto; flex: none; min-width: 34px; min-height: 34px; padding: 0; border-radius: var(--r-sm); }
 .dlg-body { flex: 1; overflow-y: auto; padding: var(--sp-5); }
-.dlg-foot { flex: none; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; padding: 14px 20px; border-top: 1px solid var(--line); background: var(--surface-glass); -webkit-backdrop-filter: saturate(1.4) blur(12px); backdrop-filter: saturate(1.4) blur(12px); }
+.dlg-foot { flex: none; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; padding: 14px 20px; border-top: 1px solid var(--line); background: var(--surface-glass); -webkit-backdrop-filter: saturate(1.2) blur(6px); backdrop-filter: saturate(1.2) blur(6px); }
 .dlg-foot .df-right { margin-left: auto; display: flex; gap: 9px; }
 .dlg-foot .df-note { font-size: var(--fs-sm); color: var(--ink-3); }
 
@@ -1612,8 +1615,8 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   display: flex; flex-direction: column;
   background: var(--surface-glass); border-left: 1px solid var(--line);
   box-shadow: var(--sh-4); animation: slideIn .32s var(--ease-out);
-  -webkit-backdrop-filter: saturate(1.6) blur(20px);
-          backdrop-filter: saturate(1.6) blur(20px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 @keyframes slideIn { from { transform: translateX(100%); } to { transform: none; } }
 
@@ -1624,8 +1627,8 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   padding: 12px 14px; border-radius: var(--r); margin-bottom: 16px;
   background: var(--surface-glass); border: 1px solid var(--line);
   font-weight: var(--fw-sb); font-size: 14px;
-  -webkit-backdrop-filter: saturate(1.4) blur(12px);
-          backdrop-filter: saturate(1.4) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .drawer-status i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
 .drawer-status.on { color: #0a6b50; }
@@ -1646,15 +1649,15 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   display: flex; align-items: center; gap: 10px;
   padding: 11px 13px; border-radius: var(--r);
   background: var(--surface-glass); border: 1px solid var(--line);
-  -webkit-backdrop-filter: saturate(1.4) blur(10px);
-          backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .drawer-addr code {
   flex: 1; min-width: 0; font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
   font-size: 13px; line-height: 1.45; color: var(--ink-2); overflow-wrap: anywhere;
 }
 .drawer-stat { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-.drawer-stat .sm { padding: 12px 14px; border-radius: var(--r); background: var(--surface-glass); border: 1px solid var(--line); -webkit-backdrop-filter: saturate(1.4) blur(10px); backdrop-filter: saturate(1.4) blur(10px); }
+.drawer-stat .sm { padding: 12px 14px; border-radius: var(--r); background: var(--surface-glass); border: 1px solid var(--line); -webkit-backdrop-filter: saturate(1.2) blur(6px); backdrop-filter: saturate(1.2) blur(6px); }
 .drawer-stat .sm b { display: block; font-size: 20px; font-weight: var(--fw-eb); color: var(--ink-1); letter-spacing: -.01em; }
 .drawer-stat .sm span { font-size: 12px; color: var(--ink-3); }
 
@@ -1700,8 +1703,8 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
   border: 1px solid var(--line); background: var(--surface-glass); color: var(--ink-2);
   box-shadow: var(--sh-3); cursor: pointer;
-  -webkit-backdrop-filter: saturate(1.4) blur(10px);
-          backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   transition: transform var(--dur-2) var(--ease-back), box-shadow var(--dur-2) var(--ease), color var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease);
 }
 .fab:hover { transform: translateY(-2px) scale(1.04); box-shadow: var(--sh-4); color: var(--violet-600); border-color: var(--violet-200); }
@@ -1739,7 +1742,7 @@ body.theme-cyberpunk .panel-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
     padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
     border-right: none; border-top: 1px solid var(--line);
     background: rgba(255,255,255,.94);
-    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
     box-shadow: 0 -4px 20px rgba(15,30,61,.08);
     overflow: visible;
   }
@@ -1976,7 +1979,7 @@ body.theme-cyberpunk .welcome-view .wv-mock-hd i:nth-child(3) { background: #00f
   background: rgba(255,255,255,.06); border: 1px solid rgba(139,154,255,.35);
   color: #c3ceff;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 6px 24px rgba(91,110,245,.12);
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
 .wv-badge i { width: 7px; height: 7px; border-radius: 50%; background: #34d8ac; box-shadow: 0 0 0 4px rgba(52,216,172,.18); animation: pulseGlow 2s ease-in-out infinite; }
 @keyframes pulseGlow { 0%,100%{ opacity:1; } 50%{ opacity:.55; } }
@@ -2022,7 +2025,7 @@ body.theme-cyberpunk .welcome-view .wv-mock-hd i:nth-child(3) { background: #00f
   position: absolute; border-radius: var(--r-lg);
   background: rgba(255,255,255,.07);
   border: 1px solid rgba(255,255,255,.14);
-  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   box-shadow: 0 28px 70px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.18);
   overflow: hidden;
   transform-style: preserve-3d;
@@ -2126,8 +2129,8 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
 .wv-card {
   position: relative; overflow: hidden; padding: 18px 20px 16px; border-radius: var(--r-xl);
   background: var(--surface-glass); border: 1px solid rgba(255,255,255,.18);
-  -webkit-backdrop-filter: saturate(1.6) blur(12px);
-          backdrop-filter: saturate(1.6) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   box-shadow: 0 16px 40px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.14);
   transition: background var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease),
               transform var(--dur-3) var(--ease), box-shadow var(--dur-3) var(--ease);
@@ -2160,7 +2163,7 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
   margin-top: 6px; padding: 10px 18px; border-radius: var(--r-lg);
   background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
   border-left: 3px solid var(--violet); font-size: 13px; color: #a9b6d6;
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
 .wv-note h4 { font-size: var(--fs-base); color: #fff; margin-bottom: 6px; }
 .wv-note ul { margin: 6px 0 0; padding-left: 18px; }
@@ -2246,8 +2249,8 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
   border: 1px solid var(--line);
   box-shadow: var(--sh-3), inset 0 1px 0 rgba(255,255,255,.08);
   color: var(--ink-1);
-  -webkit-backdrop-filter: saturate(1.6) blur(12px);
-          backdrop-filter: saturate(1.6) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .hero-banner::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -2265,8 +2268,8 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
   padding: 3px 10px; border-radius: var(--r-full);
   background: var(--surface-glass); border: 1px solid var(--line-2);
   font-size: var(--fs-sm); font-weight: var(--fw-sb); color: var(--ink-2);
-  -webkit-backdrop-filter: saturate(1.4) blur(8px);
-          backdrop-filter: saturate(1.4) blur(8px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .hero-banner h2 { margin-top: 12px; font-size: var(--fs-3xl); font-weight: var(--fw-xb); color: var(--ink-1); letter-spacing: -.5px; line-height: 1.2; }
 .hero-banner p { margin-top: 8px; font-size: var(--fs-base); color: var(--ink-3); max-width: 62ch; line-height: var(--lh-base); }
@@ -2300,8 +2303,8 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
   display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
   padding: 16px; border: 1px solid var(--line); border-radius: var(--r-xl);
   background: var(--surface-glass); color: var(--ink); text-align: left; cursor: pointer;
-  -webkit-backdrop-filter: saturate(1.6) blur(12px);
-          backdrop-filter: saturate(1.6) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   box-shadow: var(--sh-2), inset 0 1px 0 rgba(255,255,255,.18); position: relative; overflow: hidden;
   transition: border-color .35s var(--ease), box-shadow .35s var(--ease), transform .35s var(--ease);
 }
@@ -2393,8 +2396,8 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
   width: 100%; padding: 11px 13px; text-align: left; cursor: pointer;
   border: 1px solid var(--line-2); border-radius: var(--r-sm);
   background: var(--surface-glass); color: var(--ink);
-  -webkit-backdrop-filter: saturate(1.4) blur(10px);
-          backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   transition: border-color var(--dur-2) var(--ease), background var(--dur-2) var(--ease),
               box-shadow var(--dur-2) var(--ease), transform var(--dur-1) var(--ease);
 }
@@ -2418,8 +2421,8 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
   padding: 16px;
   background: var(--surface-glass); border: 1px solid var(--line); border-radius: var(--r-xl);
   box-shadow: var(--sh-2);
-  -webkit-backdrop-filter: saturate(1.6) blur(12px);
-          backdrop-filter: saturate(1.6) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   transition: border-color .35s var(--ease), box-shadow .35s var(--ease), transform .35s var(--ease);
 }
 .settings-card:hover { border-color: var(--line-2); box-shadow: var(--sh-3); transform: translateY(-4px); }
@@ -2550,8 +2553,8 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
   border: 1px solid var(--line-2); border-radius: var(--r-sm);
   background: var(--surface-glass); color: var(--ink); font-size: 13px; font-weight: var(--fw-sb);
   cursor: pointer; white-space: nowrap;
-  -webkit-backdrop-filter: saturate(1.4) blur(8px);
-          backdrop-filter: saturate(1.4) blur(8px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   transition: border-color var(--dur-2) var(--ease), background var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
 }
 .custom-select-trigger::after {
@@ -2567,8 +2570,8 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
   min-width: 140px; display: flex; flex-direction: column; gap: 2px;
   padding: 6px; border: 1px solid var(--line-2); border-radius: var(--r-sm);
   background: var(--surface-glass); box-shadow: var(--sh-3);
-  -webkit-backdrop-filter: saturate(1.6) blur(16px);
-          backdrop-filter: saturate(1.6) blur(16px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
 }
 .custom-select-option {
   display: block; width: 100%; text-align: left;
@@ -2608,8 +2611,8 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
   display: flex; align-items: center; gap: 12px;
   padding: 11px 14px; border-radius: var(--r);
   background: var(--surface-glass); border: 1px solid var(--line); box-shadow: var(--sh-1);
-  -webkit-backdrop-filter: saturate(1.4) blur(12px);
-          backdrop-filter: saturate(1.4) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+          backdrop-filter: saturate(1.2) blur(6px);
   transition: border-color var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease), transform var(--dur-2) var(--ease);
 }
 .mrow:hover { border-color: var(--violet-200); box-shadow: var(--sh-2); transform: translateX(2px); }
@@ -2658,19 +2661,19 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
 .logs-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .logs-title { font-size: 20px; font-weight: 700; color: var(--navy); letter-spacing: -.2px; margin: 0; }
 .logs-head-actions { display: flex; gap: 8px; }
-.logs-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface-glass-card); -webkit-backdrop-filter: saturate(1.6) blur(10px); backdrop-filter: saturate(1.6) blur(10px); box-shadow: var(--sh-2), inset 0 1px 0 rgba(255,255,255,.12); }
+.logs-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface-glass-card); -webkit-backdrop-filter: saturate(1.2) blur(6px); backdrop-filter: saturate(1.2) blur(6px); box-shadow: var(--sh-2), inset 0 1px 0 rgba(255,255,255,.08); }
 .logs-stat { background: var(--surface-glass); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 10px 14px; min-width: 120px; box-shadow: var(--sh-1); }
 .logs-stat-val { font-size: 18px; font-weight: 700; color: var(--navy); }
 .logs-stat-label { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
 .logs-stat-hint { color: var(--ink-3); font-size: 13px; }
-.logs-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 14px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface-glass-card); -webkit-backdrop-filter: saturate(1.6) blur(10px); backdrop-filter: saturate(1.6) blur(10px); box-shadow: var(--sh-2), inset 0 1px 0 rgba(255,255,255,.12); }
+.logs-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 14px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface-glass-card); -webkit-backdrop-filter: saturate(1.2) blur(6px); backdrop-filter: saturate(1.2) blur(6px); box-shadow: var(--sh-2), inset 0 1px 0 rgba(255,255,255,.08); }
 .logs-f { display: flex; flex-direction: column; font-size: 12px; color: var(--ink-3); gap: 4px; }
 .logs-input { padding: 7px 10px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-glass); color: var(--ink); font-size: 13px; min-width: 130px; }
 .logs-input:focus { outline: none; border-color: var(--violet); box-shadow: 0 0 0 3px var(--focus); }
-.logs-tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface-glass-card); -webkit-backdrop-filter: saturate(1.6) blur(10px); backdrop-filter: saturate(1.6) blur(10px); box-shadow: var(--sh-2), inset 0 1px 0 rgba(255,255,255,.12); }
+.logs-tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface-glass-card); -webkit-backdrop-filter: saturate(1.2) blur(6px); backdrop-filter: saturate(1.2) blur(6px); box-shadow: var(--sh-2), inset 0 1px 0 rgba(255,255,255,.08); }
 .logs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .logs-table th, .logs-table td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
-.logs-table th { background: var(--surface-glass-solid); color: var(--ink-2); font-weight: 600; position: sticky; top: 0; -webkit-backdrop-filter: saturate(1.6) blur(10px); backdrop-filter: saturate(1.6) blur(10px); }
+.logs-table th { background: var(--surface-glass); color: var(--ink-2); font-weight: 600; position: sticky; top: 0; -webkit-backdrop-filter: saturate(1.2) blur(6px); backdrop-filter: saturate(1.2) blur(6px); }
 .logs-table td { background: transparent; }
 .logs-table td.num, .logs-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .logs-table tbody tr:nth-child(even) { background: rgba(255,255,255,.04); }
@@ -2685,7 +2688,7 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
 
 /* ===== 账号体系：登录门（glass） ===== */
 .auth-gate { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center;
-  background: rgba(8,10,20,.66); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  background: rgba(8,10,20,.35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 .auth-card { width: min(380px, 90vw); padding: 34px 30px; border-radius: 12px;
   background: var(--surface-glass); border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(0,0,0,.45);
   display: flex; flex-direction: column; gap: 14px; text-align: center; }
@@ -2729,7 +2732,7 @@ body.theme-eyecare .welcome-view .wv-mock::before { background: linear-gradient(
 
 /* 额度消耗分析面板（零依赖 CSS 条形图） */
 .cons-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 16px; }
-.cons-stat { position: relative; padding: 12px 14px 12px 16px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-glass-solid); }
+.cons-stat { position: relative; padding: 12px 14px 12px 16px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-glass-card); }
 .cons-stat-tone { position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 4px; }
 .cons-stat-tone.tone-ok { background: var(--ok); }
 .cons-stat-tone.tone-warn { background: #e0a200; }
