@@ -218,9 +218,9 @@ body.theme-cyberpunk {
   --surface-1: #0a0f1c;
   --surface-2: #070b16;
   --surface-3: #12192e;
-  --surface-glass: rgba(10,15,28,.36);
-  --surface-glass-card:  rgba(10,15,28,.44);
-  --surface-glass-solid: rgba(10,15,28,.68);
+  --surface-glass: rgba(10,15,28,.18);
+  --surface-glass-card:  rgba(10,15,28,.26);
+  --surface-glass-solid: rgba(10,15,28,.40);
   --ink: #e8f9ff;
   --ink-1: #e8f9ff;
   --ink-2: #9ecbd9;
@@ -228,8 +228,8 @@ body.theme-cyberpunk {
   --ink-4: #4a6672;
   --navy: #e8f9ff;
   --navy-2: #bce4f0;
-  --line: #1a2f3d;
-  --line-2: #274556;
+  --line: rgba(0,240,255,.22);
+  --line-2: rgba(0,240,255,.32);
   --gray-0: #e8f9ff; --gray-25: #0a0f1c; --gray-50: #070b16;
   --gray-75: #0d1422; --gray-100: #12192e; --gray-150: #1a2a3d;
   --gray-200: #223548; --gray-300: #2f4a5c; --gray-400: #4a6672;
@@ -244,16 +244,26 @@ body.theme-cyberpunk {
   --warn-soft: rgba(255,204,0,.14); --warn-line: rgba(255,204,0,.35);
   --err-soft: rgba(255,0,170,.14); --err-line: rgba(255,0,170,.35);
   --info-soft: rgba(0,240,255,.14); --info-line: rgba(0,240,255,.35);
-  --bg-overlay-start: rgba(5,7,13,.18);
-  --bg-overlay-end: rgba(5,7,13,.32);
-  --bg-tint-1: rgba(0,240,255,.15);
-  --bg-tint-2: rgba(189,0,255,.12);
-  --bg-tint-3: rgba(255,0,170,.08);
+  --bg-overlay-start: rgba(5,7,13,.08);
+  --bg-overlay-end: rgba(5,7,13,.18);
+  --bg-tint-1: rgba(0,240,255,.08);
+  --bg-tint-2: rgba(189,0,255,.06);
+  --bg-tint-3: rgba(255,0,170,.04);
   --grid-line: rgba(0,240,255,.03);
-  --topbar-glass: rgba(5,7,13,.55);
-  --sidebar-glass: linear-gradient(180deg, rgba(10,15,28,.78) 0%, rgba(10,15,28,.48) 100%);
+  --topbar-glass: rgba(5,7,13,.32);
+  --sidebar-glass: linear-gradient(180deg, rgba(10,15,28,.48) 0%, rgba(10,15,28,.24) 100%);
   --sh-glow: 0 0 0 1px rgba(0,240,255,.30), 0 8px 28px rgba(0,240,255,.22);
   --focus: rgba(0,240,255,.32);
+}
+/* 赛博朋克主题：强化霓虹玻璃高光，避免白色高光与青紫背景不搭 */
+body.theme-cyberpunk .panel::before {
+  background: linear-gradient(90deg, transparent, rgba(0,240,255,.55), transparent);
+}
+body.theme-cyberpunk .panel,
+body.theme-cyberpunk .tile,
+body.theme-cyberpunk .mcard,
+body.theme-cyberpunk .relay-card {
+  box-shadow: 0 10px 34px rgba(0,0,0,.28), inset 0 1px 0 rgba(0,240,255,.16);
 }
 
 /* ============================================================
