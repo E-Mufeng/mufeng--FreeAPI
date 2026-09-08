@@ -1,6 +1,6 @@
 {
   "name": "free-api-workbench",
-  "version": "0.12.2",
+  "version": "0.12.3",
   "private": true,
   "description": "Free API 工作台 - 本地 AI 免费模型/API 聚合管理与中转调用",
   "license": "MIT",
