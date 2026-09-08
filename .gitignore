@@ -45,4 +45,5 @@ Phase2c-架构重构技术评审.md
 
 # Build output / deps (Phase 1: esbuild 产物不进 git，走 CI release)
 dist/
+dist-test/
 node_modules/

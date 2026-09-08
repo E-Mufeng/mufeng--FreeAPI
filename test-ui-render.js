@@ -13,10 +13,11 @@ const fs = require('fs');
 const { execSync } = require('child_process');
 const { JSDOM, VirtualConsole } = require('jsdom');
 
-// 先以 esbuild 经典打包（IIFE）构建出 dist/，再用 jsdom 加载（jsdom 不支持 ESM，故走经典脚本产物）
+// 先以 esbuild 经典打包（IIFE）构建出 dist-test/，再用 jsdom 加载（jsdom 不支持 ESM，故走经典脚本产物）
+// build.js 默认输出到 dist-test，避免覆盖 Vite 生产产物 dist/
 execSync('node build.js', { cwd: __dirname, stdio: 'inherit' });
 
-const FILE = require('path').join(__dirname, 'dist', 'index.html');
+const FILE = require('path').join(__dirname, 'dist-test', 'index.html');
 const errors = [];
 const vc = new VirtualConsole();
 vc.on('jsdomError', e => errors.push('jsdomError: ' + e.message));

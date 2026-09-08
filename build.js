@@ -14,7 +14,8 @@ const path = require('path');
 const esbuild = require('esbuild');
 
 const root = __dirname;
-const dist = path.join(root, 'dist');
+// 与 Vite 生产构建分离：esbuild 仅用于 jsdom 测试，避免覆盖 dist/
+const dist = path.join(root, process.env.FREE_API_BUILD_DIR || 'dist-test');
 const assets = path.join(dist, 'assets');
 
 // 安全清空目录：跨事件循环分批删除，避免 WorkBuddy safe-delete 守卫的"单 turn >50"阈值
